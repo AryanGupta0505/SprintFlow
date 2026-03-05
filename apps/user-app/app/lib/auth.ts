@@ -4,7 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { JWT } from "next-auth/jwt";
 import bcrypt from "bcrypt";
 import db from "@repo/db/client";
-import { phoneSchema } from "@repo/validation";
+// import { phoneSchema } from "@repo/validation";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -23,18 +23,18 @@ export const authOptions: NextAuthOptions = {
           throw new Error("No credentials provided");
         }
         // console.log("credentials:", credentials);
-        const parsed = phoneSchema.safeParse({
-  phone: credentials.phone,
-  password: credentials.password,
-  mode: credentials.mode,
-  name: credentials.name,
-  email: credentials.email
-});
-        if (!parsed.success) {
-          throw new Error(
-            parsed.error?.errors[0]?.message || "Validation failed"
-          );
-        }
+//         const parsed = phoneSchema.safeParse({
+//   phone: credentials.phone,
+//   password: credentials.password,
+//   mode: credentials.mode,
+//   name: credentials.name,
+//   email: credentials.email
+// });
+        // if (!parsed.success) {
+        //   throw new Error(
+        //     parsed.error?.errors[0]?.message || "Validation failed"
+        //   );
+        // }
         console.log("validation passed");
         const { phone, password, mode, name, email } = credentials;
 
