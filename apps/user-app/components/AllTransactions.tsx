@@ -420,7 +420,6 @@ export function AllTransactions({
       `statement_${startDate || "all"}_${endDate || "all"}.pdf`
     );
   };
-
   return (
     <Card title="All Transactions">
       <div className="p-4">
@@ -428,42 +427,14 @@ export function AllTransactions({
         {/* FILTER BAR */}
         <div className="flex flex-wrap gap-4 mb-6 items-center">
 
-          {/* SEARCH BAR */}
+          {/* SEARCH */}
           <div className="relative w-[320px]">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              width="16"
-              height="16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
-
             <input
               type="text"
               placeholder="Search phone number, bank name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="
-                w-full
-                pl-9 pr-4 py-2.5
-                text-sm
-                bg-white
-                border border-slate-200
-                rounded-xl
-                shadow-sm
-                outline-none
-                transition
-                focus:border-blue-500
-                focus:ring-2
-                focus:ring-blue-200
-                placeholder:text-gray-400
-              "
+              className="w-full pl-4 pr-4 py-2.5 text-sm bg-white border border-slate-200 rounded-xl shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
             />
           </div>
 
@@ -498,6 +469,61 @@ export function AllTransactions({
             ]}
           />
 
+          {/* DATE FILTER */}
+          <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-xl border shadow-sm">
+            <div className="flex flex-col">
+              <label className="text-xs text-slate-500">From</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="bg-transparent outline-none text-sm font-medium"
+              />
+            </div>
+
+            <div className="h-8 w-px bg-slate-200" />
+
+            <div className="flex flex-col">
+              <label className="text-xs text-slate-500">To</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="bg-transparent outline-none text-sm font-medium"
+              />
+            </div>
+          </div>
+
+          {/* QUICK DATE */}
+          <button
+            onClick={setToday}
+            className="px-3 py-1 text-xs rounded-full bg-slate-100 hover:bg-slate-200"
+          >
+            Today
+          </button>
+
+          <button
+            onClick={setLast7Days}
+            className="px-3 py-1 text-xs rounded-full bg-slate-100 hover:bg-slate-200"
+          >
+            Last 7 Days
+          </button>
+
+          <button
+            onClick={setThisMonth}
+            className="px-3 py-1 text-xs rounded-full bg-slate-100 hover:bg-slate-200"
+          >
+            This Month
+          </button>
+
+          {/* CLEAR FILTERS */}
+          <button
+            onClick={clearFilters}
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Clear Filters
+          </button>
+
           <button
             onClick={downloadStatement}
             disabled={!filtered.length}
@@ -512,8 +538,7 @@ export function AllTransactions({
           </button>
         </div>
 
-        {/* TRANSACTION LIST */}
-
+        {/* TRANSACTION LIST (UNCHANGED) */}
         {!filtered.length ? (
           <div className="text-center py-10 text-slate-500">
             No Transactions Found
