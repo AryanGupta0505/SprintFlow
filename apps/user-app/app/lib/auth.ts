@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
         if (!credentials) {
           throw new Error("No credentials provided");
         }
-        console.log("credentials:", credentials);
+        // console.log("credentials:", credentials);
         const parsed = phoneSchema.safeParse({
   phone: credentials.phone,
   password: credentials.password,
@@ -41,7 +41,7 @@ export const authOptions: NextAuthOptions = {
         const existingUser = await db.user.findUnique({
           where: { number: phone }
         });
-        console.log("after prisma",existingUser)
+        // console.log("after prisma",existingUser)
         /* ===================== SIGNUP ===================== */
 
         if (mode === "signup") {
@@ -77,7 +77,7 @@ export const authOptions: NextAuthOptions = {
         /* ===================== SIGNIN ===================== */
 
         if (mode === "signin") {
-          console.log("Before existingUser:", existingUser);
+          // console.log("Before existingUser:", existingUser);
           if (!existingUser) {
             throw new Error("User not found");
           }
@@ -86,12 +86,12 @@ export const authOptions: NextAuthOptions = {
           if (existingUser.isDeleted) {
             throw new Error("Account has been deleted");
           }
-          console.log("After existingUser:", existingUser);
+          // console.log("After existingUser:", existingUser);
           const isValid = await bcrypt.compare(
             password,
             existingUser.password
           );
-          console.log("checking password...",isValid);
+          // console.log("checking password...",isValid);
           if (!isValid) {
             throw new Error("Invalid password");
           }

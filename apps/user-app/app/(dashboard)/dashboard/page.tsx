@@ -180,7 +180,7 @@ export default async function DashboardPage() {
 async function getUserDetails() {
   const cookie = headers().get("cookie");
 
-  const res = await axios.get(`/api/user`, {
+  const res = await axios.get(`${process.env.NEXTAUTH_URL}/api/user`, {
     headers: {
       Cookie: cookie || "",
     },
