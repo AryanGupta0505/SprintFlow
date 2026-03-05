@@ -13,8 +13,17 @@ model User {
   name              String?
   number            String              @unique
   password          String
+  upiPin            String?             @db.Char(4)
   OnRampTransaction OnRampTransaction[]
+  OffRampTransaction OffRampTransaction[]
+  autoReserveEnabled Boolean            @default(false)
+  autoReserveLimit   Int?               // example: 200000
+  isDeleted         Boolean  @default(false)
+  deletedAt         DateTime?
   Balance           Balance[]
+  sentTransfers     p2pTransfer[]       @relation(name: "FromUserRelation")
+  receivedTransfers p2pTransfer[]       @relation(name: "ToUserRelation")
+  notifications     Notification[]
 }
 
 model Merchant {
@@ -30,10 +39,25 @@ model OnRampTransaction {
   token     String       @unique
   provider  String
   amount    Int
+  pinAttempts Int            @default(0)
   startTime DateTime
   userId    Int
+  webhookUrl String
   user      User         @relation(fields: [userId], references: [id])
 }
+
+model OffRampTransaction {
+  id        Int          @id @default(autoincrement())
+  status    OffRampStatus
+  token     String       @unique
+  provider  String
+  amount    Int
+  pinAttempts Int            @default(0)
+  startTime DateTime
+  userId    Int
+  webhookUrl String
+  user      User         @relation(fields: [userId], references: [id])
+} 
 
 model Balance {
   id     Int  @id @default(autoincrement())
@@ -41,6 +65,33 @@ model Balance {
   amount Int
   locked Int
   user   User @relation(fields: [userId], references: [id])
+}
+
+model p2pTransfer {
+  id         Int          @id @default(autoincrement())
+  token     String       @unique
+  status    p2pTransferStatus
+  amount     Int
+  timestamp  DateTime
+  pinAttempts Int            @default(0)
+  fromUserId Int
+  fromUser   User         @relation(name: "FromUserRelation", fields: [fromUserId], references: [id])
+  toUserId   Int
+  toUser     User         @relation(name: "ToUserRelation", fields: [toUserId], references: [id])
+}
+
+model Notification {
+  id        Int                  @id @default(autoincrement())
+  userId    Int
+  category  NotificationCategory
+  event     NotificationEvent
+  title     String
+  message   String
+  isRead    Boolean              @default(false)
+  metadata  Json?
+  createdAt DateTime             @default(now())
+
+  user      User                 @relation(fields: [userId], references: [id])
 }
 
 enum AuthType {
@@ -52,4 +103,35 @@ enum OnRampStatus {
   Success
   Failure
   Processing
+}
+
+enum OffRampStatus {
+  Success
+  Failure
+  Processing
+}
+
+enum p2pTransferStatus {
+  Success
+  Failure
+  Processing
+}
+
+enum NotificationCategory {
+  TRANSACTION
+  SECURITY
+}
+
+enum NotificationEvent {
+  PAYMENT_RECEIVED
+  PAYMENT_SENT
+  BANK_DEPOSIT_SUCCESS
+  BANK_WITHDRAWAL_SUCCESS
+  QR_PAYMENT_SUCCESS
+  TRANSACTION_FAILED
+  TRANSACTION_EXPIRED
+  NEW_LOGIN
+  NEW_DEVICE_LOGIN
+  BALANCE_LOCKED
+  BALANCE_UNLOCKED
 }
