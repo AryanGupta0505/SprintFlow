@@ -10,7 +10,7 @@ import { SidebarProvider } from "../components/SidebarContext"; // 👈 ADD
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Wallet",
+  title: "SprintFlow",
   description: "Simple wallet app",
 };
 
