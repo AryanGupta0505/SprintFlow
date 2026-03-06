@@ -26,8 +26,8 @@ export async function getAnalytics(
   const selectedMonth = month ?? now.getMonth(); // 0-11
   const selectedYear = year ?? now.getFullYear();
 
-  const firstDay = new Date(selectedYear, selectedMonth, 1);
-  const nextMonth = new Date(selectedYear, selectedMonth + 1, 1);
+  const firstDay = new Date(Date.UTC(selectedYear, selectedMonth, 1, -5, -30));
+const nextMonth = new Date(Date.UTC(selectedYear, selectedMonth + 1, 1, -5, -30));
 
   // ======================
   // FETCH TRANSACTIONS
@@ -95,11 +95,14 @@ export async function getAnalytics(
   // ======================
 
   function formatDateLocal(date: Date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  }
+  const istDate = new Date(date.getTime() + 5.5 * 60 * 60 * 1000);
+
+  const y = istDate.getUTCFullYear();
+  const m = String(istDate.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(istDate.getUTCDate()).padStart(2, "0");
+
+  return `${y}-${m}-${d}`;
+}
 
   const dailyMap: Record<
     string,
