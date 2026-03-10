@@ -27,8 +27,6 @@ export default async function Page() {
       status: "Failure"
     }
   });
-
-  
   const users = await getUsers();
   const transactions = await getP2PTransactions();
 
