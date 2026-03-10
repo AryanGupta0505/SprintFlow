@@ -1,10 +1,10 @@
 # ⚡ SprintFlow – Full Stack Fintech Payment Platform
 
-SprintFlow is a **modern full-stack fintech payment platform** that simulates real-world **digital wallet and banking workflows** including wallet top-ups, bank withdrawals, peer-to-peer transfers, QR payments, and transaction analytics.
+SprintFlow is a **modern full-stack fintech payment platform** that simulates real-world **digital wallet and banking workflows** including wallet top-ups, bank withdrawals, peer-to-peer transfers, QR payments, payment requests, and transaction analytics.
 
-The project demonstrates how modern fintech systems are architected using **microservices, monorepos, and scalable backend infrastructure**.
+The project demonstrates how modern fintech systems are architected using **monorepos, microservice-style services, idempotent transaction systems, and event-driven workflows**.
 
-SprintFlow replicates the core experience of **UPI-style payment systems**, enabling users to send money, scan QR codes, analyze spending patterns, and manage digital wallets through a clean, responsive interface.
+SprintFlow replicates the core experience of **UPI-style payment systems**, enabling users to send money, scan QR codes, request payments, analyze spending patterns, and manage digital wallets through a clean, responsive interface.
 
 ---
 
@@ -14,7 +14,7 @@ SprintFlow replicates the core experience of **UPI-style payment systems**, enab
 
 👉 https://sprint-flow-sigma.vercel.app/
 
-*(Use two accounts to test P2P transfers and wallet flows)*
+*(Use two accounts to test P2P transfers and payment request flows)*
 
 ---
 
@@ -22,50 +22,71 @@ SprintFlow replicates the core experience of **UPI-style payment systems**, enab
 
 ## 🔐 Secure Authentication
 
-* Phone-number based login
-* Password hashing using **bcrypt**
-* Session management using **NextAuth**
-* Server-side session validation
+- Phone-number based login  
+- Password hashing using **bcrypt**  
+- Session management using **NextAuth**  
+- Secure server-side session validation  
+- Protected API routes  
 
 ---
 
 ## 💰 Digital Wallet System
 
-* Real-time wallet balance tracking
-* Automatic wallet updates after transactions
-* Opening balance calculations
-* Withdrawal (bank → wallet) functionality
-* Deposit (wallet → bank) functionality
-* Real-time Balance updates
+- Real-time wallet balance tracking  
+- Automatic balance updates after transactions  
+- Opening balance calculations  
+- Wallet top-ups via simulated bank  
+- Wallet withdrawals to bank  
+- Ledger-style wallet accounting  
 
 ---
 
 ## 💸 Peer-to-Peer Transfers
 
-* Instant wallet-to-wallet payments
-* Transfer money using phone numbers
-* Automatic balance synchronization
-* Transaction validation and failure handling
+- Instant wallet-to-wallet payments  
+- Transfer money using phone numbers  
+- Atomic balance updates  
+- Failure-safe transaction handling  
+- Automatic transaction records  
 
 ---
 
 ## 📷 QR Code Payments
 
-* Generate personal payment QR codes
-* Scan QR codes to send money instantly
-* Camera-based QR scanning
-* Upload QR image for payment
+- Generate personal payment QR codes  
+- Scan QR codes to send money instantly  
+- Camera-based QR scanning  
+- Upload QR images for payment  
+- Seamless wallet payment integration  
+
+---
+
+## 💳 Payment Request System
+
+A full **request-to-pay flow similar to UPI collect requests**.
+
+Users can:
+
+- Request money from another user  
+- View incoming payment requests  
+- Approve or decline requests  
+- Automatically process payment after approval  
+- Track request status *(pending / accepted / declined)*  
+
+This introduces a **new payment flow beyond simple transfers**, simulating real fintech request-based payments.
 
 ---
 
 ## 📊 Financial Analytics Dashboard
 
-Interactive insights into user spending behavior:
+Interactive insights into user spending behavior.
 
-* Monthly spending overview
-* Sent vs received comparisons
-* Daily transaction activity charts
-* Category-based spending analysis
+Features include:
+
+- Monthly spending overview  
+- Sent vs received transaction comparison  
+- Daily transaction activity charts  
+- Category-based financial insights  
 
 Built using **Recharts visualization library**.
 
@@ -73,34 +94,84 @@ Built using **Recharts visualization library**.
 
 ## 📑 Transaction Management
 
-* Full transaction history
-* Filter and search transactions
-* Transaction status tracking
-* Download **PDF receipts** for payments
+- Complete transaction history  
+- Transaction status tracking  
+- Transaction lifecycle monitoring  
+- Search and filter transactions  
+- Download **PDF payment receipts**
 
 ---
 
-## 🔔 Notification System
+## 🔔 Real-Time Notification System
 
-* Internal notification pipeline
-* Transaction success and failure alerts
-* Real-time status updates
+A real-time notification infrastructure that alerts users about financial events.
+
+Examples include:
+
+- Payment success notifications  
+- Failed transaction alerts  
+- Payment request notifications  
+- Security alerts  
+- Real-time UI updates using **WebSockets**
+
+---
+
+# 🏦 Simulated Banking Infrastructure
+
+SprintFlow includes a **mock banking system** that replicates real banking payment flows.
+
+Features include:
+
+- Simulated bank payment approval interface  
+- Bank API server  
+- Bank webhook callbacks  
+- Payment status verification  
+- External service communication  
+
+This demonstrates how **real fintech systems interact with external banking providers**.
+
+---
+
+# 🔄 Transaction Lifecycle & Idempotency
+
+SprintFlow implements a **robust transaction lifecycle system**:
+
+```
+Initiated  
+↓  
+Processing  
+↓  
+Bank Authorization  
+↓  
+Webhook Confirmation  
+↓  
+Completed / Failed  
+```
+
+Additional safeguards include:
+
+- **Idempotent transactions** to prevent duplicate payments  
+- Safe retry mechanisms  
+- Transaction validation before execution  
+- Atomic database operations  
+
+These patterns are commonly used in **real payment gateways and fintech platforms**.
 
 ---
 
 # 🏗 System Architecture
 
-SprintFlow uses a **Turborepo monorepo architecture** with multiple services that simulate real fintech infrastructure.
+SprintFlow uses a **Turborepo monorepo architecture** with multiple services.
 
 ```
 SprintFlow
 │
 ├── apps
 │   ├── user-app        # Main fintech application (Next.js)
-│   ├── bank-server     # Simulated bank backend API
-│   ├── bank-web        # Banking payment confirmation interface
-│   ├── bank-webhook    # Bank callback system for transaction processing
-│   └── merchant-app    # Merchant payment dashboard (planned)
+│   ├── bank-server     # Simulated bank API server
+│   ├── bank-web        # Bank payment approval interface
+│   ├── bank-webhook    # Webhook processor for transaction confirmations
+│   └── merchant-app    # Merchant dashboard (planned)
 │
 ├── packages
 │   ├── ui              # Shared UI components
@@ -108,34 +179,36 @@ SprintFlow
 │   └── validation      # Shared Zod validation schemas
 ```
 
-This architecture allows:
+Benefits of this architecture:
 
-* Modular service separation
-* Shared packages across applications
-* Faster builds with Turborepo caching
-* Scalable fintech infrastructure simulation
+- Shared code between services  
+- Faster builds using **Turborepo caching**  
+- Modular backend services  
+- Scalable fintech infrastructure simulation  
 
 ---
 
 # 🔄 Payment Flow Simulation
 
-SprintFlow replicates a **real digital payment workflow**.
+SprintFlow replicates how **real digital payment systems interact with banking infrastructure**.
 
 ```
 User App
    ↓
-Bank Server
+Bank Server API
    ↓
-Bank Web Payment Page
+Bank Web Payment Interface
    ↓
-Bank Webhook
+Bank Webhook Callback
    ↓
 Database Update
    ↓
 Wallet Balance Updated
+   ↓
+User Notification
 ```
 
-This demonstrates how **real banking APIs interact with payment gateways**.
+This demonstrates **event-driven financial transaction systems**.
 
 ---
 
@@ -143,54 +216,57 @@ This demonstrates how **real banking APIs interact with payment gateways**.
 
 ## Frontend
 
-* **Next.js (App Router)**
-* **React**
-* **TypeScript**
-* **TailwindCSS**
+- **Next.js (App Router)**  
+- **React**  
+- **TypeScript**  
+- **TailwindCSS**
+
 ---
 
 ## Backend
 
-* **Node.js**
-* **Express**
-* **Next.js Backend APIs**
-* **Next.js Server Actions**
+- **Node.js**  
+- **Express**  
+- **Next.js Backend APIs**  
+- **Server Actions**
 
 ---
 
 ## Database
 
-* **PostgreSQL**
-* **Prisma ORM**
+- **PostgreSQL**  
+- **Prisma ORM**
 
 ---
 
 ## Authentication
 
-* **NextAuth**
+- **NextAuth**
 
 ---
 
-## Tooling
+## Tooling & Libraries
 
-* **Turborepo**
-* **Zod Validation**
-* **Axios**
-* **jsPDF (PDF generation)**
-* **Recharts**
-* **QRCode**
+- **Turborepo**  
+- **Zod (Schema Validation)**  
+- **Axios**  
+- **Recharts**  
+- **QRCode**  
+- **jsPDF**  
+- **WebSockets**
 
 ---
 
 # 🔐 Security Features
 
-SprintFlow includes multiple security mechanisms:
+SprintFlow implements multiple fintech-grade security mechanisms.
 
-* Password hashing with **bcrypt**
-* Server-side session validation
-* Zod schema validation
-* Transaction verification checks
-* Secure API request handling
+- Password hashing using **bcrypt**  
+- Server-side session validation  
+- Strict API input validation using **Zod**  
+- Transaction verification logic  
+- Idempotent payment protection  
+- Secure webhook handling  
 
 ---
 
@@ -207,7 +283,7 @@ cd SprintFlow
 
 ## 2️⃣ Install dependencies
 
-```
+```bash
 npm install
 ```
 
@@ -217,12 +293,14 @@ npm install
 
 Create `.env` files where required.
 
-Example:
+Example configuration:
 
 ```
 DATABASE_URL=
+
 NEXTAUTH_SECRET=
 NEXTAUTH_URL=
+
 NEXT_PUBLIC_BANK_SERVER_URL=
 NEXT_PUBLIC_BANK_WEBHOOK_URL=
 NEXT_PUBLIC_BANK_WEB_URL=
@@ -232,7 +310,7 @@ NEXT_PUBLIC_BANK_WEB_URL=
 
 ## 4️⃣ Run database migrations
 
-```
+```bash
 npx prisma migrate dev
 ```
 
@@ -240,7 +318,7 @@ npx prisma migrate dev
 
 ## 5️⃣ Start development servers
 
-```
+```bash
 npm run dev
 ```
 
@@ -248,30 +326,34 @@ npm run dev
 
 # 🚀 Deployment
 
-SprintFlow is deployed using modern cloud platforms:
+SprintFlow is deployed using modern cloud platforms.
 
-| Service      | Platform           |
-| ------------ | ------------------ |
-| User App     | Vercel             |
-| Bank Server  | Railway            |
-| Bank Web     | Vercel             |
-| Bank Webhook | Railway            |
-| Database     | PostgreSQL (Cloud) |
+| Service | Platform |
+|--------|---------|
+| User App | Vercel |
+| Bank Server | Railway |
+| Bank Web | Vercel |
+| Bank Webhook | Railway |
+| Database | PostgreSQL (Cloud) |
 
 ---
 
-# 📌 Key Concepts Demonstrated
+# 📌 Key Engineering Concepts Demonstrated
 
-This project demonstrates multiple **real-world fintech engineering concepts**:
+SprintFlow demonstrates multiple **real-world fintech engineering concepts**:
 
-* Full-stack payment architecture
-* Monorepo system design
-* Secure authentication systems
-* QR-based payment infrastructure
-* Wallet and ledger management
-* Financial analytics dashboards
-* Microservice-style application structure
-* Cloud deployment pipelines
+- Digital wallet architecture  
+- Peer-to-peer payment infrastructure  
+- QR-based payment systems  
+- Payment request flows  
+- Transaction lifecycle management  
+- Idempotent transaction handling  
+- Real-time notification systems  
+- Event-driven backend workflows  
+- Monorepo system design  
+- Microservice-style architecture  
+- Financial analytics dashboards  
+- Cloud-native deployment  
 
 ---
 
@@ -285,5 +367,5 @@ SprintFlow was built to explore **real-world fintech system architecture** and d
 
 **Aryan Gupta**
 
-GitHub
+GitHub  
 https://github.com/AryanGupta0505
