@@ -6,7 +6,7 @@ import { authOptions } from "../auth";
 import prisma from "@repo/db/client";
 import { randomUUID } from "crypto";
 
-export async function p2pTransfer(to: string, amount: number) {
+export async function p2pTransfer(to: string, amount: number, requestId?: number) {
   const session = await getServerSession(authOptions);
   const from = Number(session?.user?.id);
 
@@ -43,7 +43,12 @@ export async function p2pTransfer(to: string, amount: number) {
       fromUserId: from,
       toUserId: toUser.id,
       amount,
-      timestamp: new Date()
+      timestamp: new Date(),
+      ...(requestId && {
+        paymentRequest: {
+          connect: { id: requestId }
+        }
+      })
     }
   });
 

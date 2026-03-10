@@ -26,12 +26,12 @@ export async function createNotification({
       metadata
     }
   });
-
+console.log("CREATED NOTIFICATION", notification.id);
   // 🔥 Push real-time
   sendToUser(userId, {
     type: "NEW_NOTIFICATION",
     data: notification
   });
-
+console.log("WS SENT");
   return notification;
 }

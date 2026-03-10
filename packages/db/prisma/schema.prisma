@@ -21,6 +21,8 @@ model User {
   isDeleted         Boolean  @default(false)
   deletedAt         DateTime?
   Balance           Balance[]
+  sentRequests     PaymentRequest[] @relation("RequestFromUser")
+  receivedRequests PaymentRequest[] @relation("RequestToUser")
   sentTransfers     p2pTransfer[]       @relation(name: "FromUserRelation")
   receivedTransfers p2pTransfer[]       @relation(name: "ToUserRelation")
   notifications     Notification[]
@@ -78,6 +80,28 @@ model p2pTransfer {
   fromUser   User         @relation(name: "FromUserRelation", fields: [fromUserId], references: [id])
   toUserId   Int
   toUser     User         @relation(name: "ToUserRelation", fields: [toUserId], references: [id])
+  paymentRequest PaymentRequest?
+}
+
+model PaymentRequest {
+  id          Int                  @id @default(autoincrement())
+  token       String               @unique
+  amount      Int
+  note        String?
+  status      PaymentRequestStatus
+  createdAt   DateTime             @default(now())
+  expiresAt   DateTime?
+
+  fromUserId  Int
+  fromUser    User                 @relation("RequestFromUser", fields: [fromUserId], references: [id])
+
+  toUserId    Int
+  toUser      User                 @relation("RequestToUser", fields: [toUserId], references: [id])
+
+  transferId  Int?                 @unique
+  transfer    p2pTransfer?         @relation(fields: [transferId], references: [id])
+
+  @@index([toUserId, status])
 }
 
 model Notification {
@@ -134,4 +158,13 @@ enum NotificationEvent {
   NEW_DEVICE_LOGIN
   BALANCE_LOCKED
   BALANCE_UNLOCKED
+  PAYMENT_REQUEST_RECEIVED
+  PAYMENT_REQUEST_ACCEPTED
+}
+
+enum PaymentRequestStatus {
+  Pending
+  Accepted
+  Rejected
+  Expired
 }

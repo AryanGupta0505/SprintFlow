@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@repo/ui/button";
@@ -7,17 +8,30 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { p2pTransfer } from "../app/lib/actions/p2pTransfer";
 
-export function SendCard({ selectedNumber }: { selectedNumber: string }) {
+export function SendCard({
+  selectedNumber,
+  selectedAmount,
+  requestId
+}: {
+  selectedNumber: string;
+  selectedAmount?: number;
+  requestId?: number;
+}) {
   const [number, setNumber] = useState("");
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
+
   const router = useRouter();
 
   useEffect(() => {
     if (selectedNumber) {
       setNumber(selectedNumber);
     }
-  }, [selectedNumber]);
+
+    if (selectedAmount) {
+      setAmount(String(selectedAmount / 100));
+    }
+  }, [selectedNumber, selectedAmount]);
 
   const handleTransfer = async () => {
     if (!number || !amount) return;
@@ -26,7 +40,7 @@ export function SendCard({ selectedNumber }: { selectedNumber: string }) {
 
     const amtInPaise = Number(amount) * 100;
 
-    const res = await p2pTransfer(number, amtInPaise);
+    const res = await p2pTransfer(number, amtInPaise, requestId);
 
     if (res?.error) {
       setLoading(false);
@@ -34,7 +48,6 @@ export function SendCard({ selectedNumber }: { selectedNumber: string }) {
       return;
     }
 
-    // ✅ Pass everything directly
     router.push(
       `/p2p/pay/${res.token}?amount=${amtInPaise}&to=${number}`
     );

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -9,7 +8,12 @@ import { BellIcon } from "@heroicons/react/24/outline";
 export default function NotificationBell() {
   const { unreadCount } = useNotifications();
   const [open, setOpen] = useState(false);
+
   const containerRef = useRef<HTMLDivElement>(null);
+
+  /* =========================
+     CLOSE DROPDOWN OUTSIDE
+  ========================= */
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -22,6 +26,7 @@ export default function NotificationBell() {
     }
 
     document.addEventListener("mousedown", handleClickOutside);
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };

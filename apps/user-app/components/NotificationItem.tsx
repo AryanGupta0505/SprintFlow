@@ -80,7 +80,31 @@ export default function NotificationItem({
     iconBg = "bg-green-100";
     message = `Received from ${masked}`;
   }
+  if (event === "PAYMENT_REQUEST_RECEIVED") {
+  const masked =
+    metadata.phone?.length === 10
+      ? `XXXXXX${metadata.phone.slice(-4)}`
+      : metadata.phone;
 
+  direction = "UP";
+  color = "text-indigo-600";
+  bg = "bg-indigo-50";
+  iconBg = "bg-indigo-100";
+  message = `Request from ${masked}`;
+}
+
+if (event === "PAYMENT_REQUEST_ACCEPTED") {
+  const masked =
+    metadata.phone?.length === 10
+      ? `XXXXXX${metadata.phone.slice(-4)}`
+      : metadata.phone;
+
+  direction = "DOWN";
+  color = "text-green-600";
+  bg = "bg-green-50";
+  iconBg = "bg-green-100";
+  message = `Request paid by ${masked}`;
+}
   /* -------------------------
      SECURITY
   -------------------------- */

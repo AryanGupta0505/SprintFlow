@@ -189,13 +189,51 @@ export async function POST(req: Request) {
         data: { amount: { increment: transfer.amount } }
       });
 
-      await tx.p2pTransfer.update({
+      // await tx.p2pTransfer.update({
+      //   where: { token },
+      //   data: {
+      //     status: "Success",
+      //     pinAttempts: 0
+      //   }
+      // });
+      const updatedTransfer = await tx.p2pTransfer.update({
         where: { token },
         data: {
           status: "Success",
           pinAttempts: 0
+        },
+        include: {
+          paymentRequest: true
         }
       });
+      if (updatedTransfer.paymentRequest) {
+        const updatedRequest=await tx.paymentRequest.update({
+          where: { id: updatedTransfer.paymentRequest.id },
+          data: {
+            status: "Accepted",
+            transferId: updatedTransfer.id
+          }
+        });
+        await createNotification({
+  userId: updatedRequest.fromUserId,
+  category: "TRANSACTION",
+  event: "PAYMENT_REQUEST_ACCEPTED",
+  title: "Payment Request Completed",
+  message: "Your payment request was paid",
+  metadata: {
+    amount: updatedTransfer.amount,
+    phone: sender.number,
+    requestId: updatedRequest.id
+  }
+});
+        sendToUser(updatedRequest.fromUserId, {
+    type: "PAYMENT_REQUEST_UPDATED",
+    data: {
+      requestId: updatedRequest.id,
+      status: "Accepted"
+    }
+  });
+      }
     });
 
     /* 🔔 SUCCESS NOTIFICATIONS */

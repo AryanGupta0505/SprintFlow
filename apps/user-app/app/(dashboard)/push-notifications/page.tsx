@@ -43,7 +43,7 @@ function ToggleGroup<T extends string>({
 }
 
 export default function PushNotificationsPage() {
-  const { notifications } = useNotifications();
+  const { notifications ,markAllAsRead} = useNotifications();
 
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -148,14 +148,25 @@ export default function PushNotificationsPage() {
       <div className="max-w-5xl mx-auto">
 
         {/* HEADER */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-800">
-            All Notifications
-          </h1>
-          <p className="text-slate-500 mt-1">
-            Manage and filter your activity history
-          </p>
-        </div>
+        <div className="mb-8 flex items-center justify-between">
+
+  <div>
+    <h1 className="text-3xl font-bold text-slate-800">
+      All Notifications
+    </h1>
+    <p className="text-slate-500 mt-1">
+      Manage and filter your activity history
+    </p>
+  </div>
+
+  <button
+    onClick={markAllAsRead}
+    className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition"
+  >
+    Mark All as Read
+  </button>
+
+</div>
 
         {/* FILTER CARD */}
         <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-6 shadow-sm space-y-6">

@@ -110,7 +110,7 @@ export default function P2PPayPage() {
       setStatus("success");
 
       setTimeout(() => {
-        router.replace("/p2p?refresh=" + Date.now());
+        window.location.href = "/p2p";
       }, 1500);
 
     } else {
@@ -125,7 +125,7 @@ export default function P2PPayPage() {
 
       if (newAttempts >= 3) {
         setTimeout(() => {
-          router.replace("/p2p?refresh=" + Date.now());
+          window.location.href = "/p2p";
         }, 1500);
       } else {
         setTimeout(() => {

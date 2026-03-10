@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -49,7 +48,6 @@ export default function NotificationDropdown() {
               />
             ))}
 
-            {/* Pagination Buttons */}
             <div className="flex justify-center pt-2 pb-3">
               {showViewMore && (
                 <button

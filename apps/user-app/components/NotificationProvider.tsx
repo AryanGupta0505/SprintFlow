@@ -7,6 +7,8 @@ import {
   useEffect,
   useRef,
   useState,
+  useMemo,
+  useCallback
 } from "react";
 
 export interface Notification {
@@ -24,6 +26,7 @@ interface NotificationContextType {
   notifications: Notification[];
   unreadCount: number;
   markAsRead: (id: number) => void;
+  markAllAsRead: () => void;
 }
 
 const NotificationContext =
@@ -34,8 +37,17 @@ export function NotificationProvider({
 }: {
   children: React.ReactNode;
 }) {
+
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+
+  /* =========================
+     DERIVED UNREAD COUNT
+  ========================= */
+
+  const unreadCount = useMemo(
+    () => notifications.filter(n => !n.isRead).length,
+    [notifications]
+  );
 
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -43,16 +55,23 @@ export function NotificationProvider({
   useEffect(() => {
     let isMounted = true;
 
-    // 🔹 Initial DB fetch
+    /* =========================
+       INITIAL FETCH
+    ========================= */
+
     const loadInitialData = async () => {
       try {
-        const res = await fetch("/api/notifications");
-        const data = await res.json();
-        if (isMounted) setNotifications(data);
 
-        const unreadRes = await fetch("/api/notifications/unread");
-        const unreadData = await unreadRes.json();
-        if (isMounted) setUnreadCount(unreadData.count);
+        const res = await fetch("/api/notifications", {
+          cache: "no-store"
+        });
+
+        const data = await res.json();
+
+        if (isMounted) {
+          setNotifications(data);
+        }
+
       } catch (err) {
         console.error("Failed to load notifications", err);
       }
@@ -60,9 +79,13 @@ export function NotificationProvider({
 
     loadInitialData();
 
-    // 🔥 WebSocket connect function
+    /* =========================
+       CONNECT WEBSOCKET
+    ========================= */
+
     const connectWebSocket = () => {
-      if (socketRef.current) return;
+
+      if (socketRef.current?.readyState === WebSocket.OPEN) return;
 
       const wsProtocol =
         window.location.protocol === "https:" ? "wss" : "ws";
@@ -71,27 +94,103 @@ export function NotificationProvider({
 
       const socket = new WebSocket(wsUrl);
 
-      socket.onopen = () => {
+      socket.onopen = async () => {
+
         console.log("🔌 WS Connected (frontend)");
+
+        try {
+
+          const res = await fetch("/api/notifications", {
+            cache: "no-store"
+          });
+
+          const data = await res.json();
+
+          setNotifications(data);
+
+        } catch (err) {
+          console.error("Notification sync failed", err);
+        }
       };
 
       socket.onmessage = (event) => {
+
+        console.log("WS MESSAGE:", event.data);
+
         try {
+
           const data = JSON.parse(event.data);
 
-          // ✅ EXISTING FUNCTIONALITY (UNCHANGED)
+          /* =========================
+             NEW NOTIFICATION
+          ========================= */
+
           if (data.type === "NEW_NOTIFICATION") {
-            setNotifications((prev) => [data.data, ...prev]);
-            setUnreadCount((prev) => prev + 1);
+
+            setNotifications(prev => {
+
+              if (prev.some(n => n.id === data.data.id)) {
+                return prev;
+              }
+
+              return [
+                {
+                  id: data.data.id,
+                  title: data.data.title,
+                  message: data.data.message,
+                  category: data.data.category,
+                  event: data.data.event,
+                  metadata: data.data.metadata ?? null,
+                  createdAt: data.data.createdAt ?? new Date().toISOString(),
+                  isRead: false
+                },
+                ...prev
+              ];
+
+            });
+
           }
 
-          // 🔥 NEW: BALANCE UPDATE SUPPORT
+          /* =========================
+             BALANCE UPDATE
+          ========================= */
+
           if (data.type === "BALANCE_UPDATE") {
+
             window.dispatchEvent(
               new CustomEvent("balance-update", {
                 detail: data.data,
               })
             );
+
+          }
+
+          /* =========================
+             PAYMENT REQUEST CREATED
+          ========================= */
+
+          if (data.type === "PAYMENT_REQUEST_CREATED") {
+
+            window.dispatchEvent(
+              new CustomEvent("payment-request-created", {
+                detail: data.data,
+              })
+            );
+
+          }
+
+          /* =========================
+             PAYMENT REQUEST UPDATED
+          ========================= */
+
+          if (data.type === "PAYMENT_REQUEST_UPDATED") {
+
+            window.dispatchEvent(
+              new CustomEvent("payment-request-updated", {
+                detail: data.data,
+              })
+            );
+
           }
 
         } catch (err) {
@@ -100,14 +199,15 @@ export function NotificationProvider({
       };
 
       socket.onclose = (event) => {
+
         console.log("🔌 WS Closed:", event.code);
 
         socketRef.current = null;
 
-        // 🔁 Auto reconnect after 1 second
         reconnectTimeout.current = setTimeout(() => {
           connectWebSocket();
         }, 1000);
+
       };
 
       socket.onerror = (err) => {
@@ -120,6 +220,7 @@ export function NotificationProvider({
     connectWebSocket();
 
     return () => {
+
       isMounted = false;
 
       if (reconnectTimeout.current) {
@@ -134,37 +235,77 @@ export function NotificationProvider({
       }
 
       socketRef.current = null;
+
     };
+
   }, []);
 
-  async function markAsRead(id: number) {
-    try {
-      await fetch(`/api/notifications/${id}`, {
-        method: "PATCH",
-      });
+  /* =========================
+     MARK SINGLE AS READ
+  ========================= */
 
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === id ? { ...n, isRead: true } : n
-        )
-      );
+  const markAsRead = useCallback(async (id: number) => {
+  try {
 
-      setUnreadCount((prev) => Math.max(prev - 1, 0));
-    } catch (err) {
-      console.error("Failed to mark as read", err);
-    }
+    await fetch(`/api/notifications/read/${id}`, {
+      method: "PATCH",
+    });
+
+    setNotifications(prev =>
+      prev.map(n =>
+        n.id === id ? { ...n, isRead: true } : n
+      )
+    );
+
+  } catch (err) {
+    console.error("Failed to mark as read", err);
   }
+}, []);
+
+  /* =========================
+     MARK ALL AS READ
+  ========================= */
+
+  const markAllAsRead = useCallback(async () => {
+  try {
+
+    await fetch("/api/notifications/read/all", {
+      method: "PATCH",
+    });
+
+    setNotifications(prev =>
+      prev.map(n => ({
+        ...n,
+        isRead: true
+      }))
+    );
+    window.location.reload()
+  } catch (err) {
+    console.error("Failed to mark all as read", err);
+  }
+}, []);
+
+  /* =========================
+     MEMO CONTEXT VALUE
+  ========================= */
+
+  const contextValue = useMemo(() => ({
+  notifications,
+  unreadCount,
+  markAsRead,
+  markAllAsRead
+}), [notifications, unreadCount, markAsRead, markAllAsRead]);
 
   return (
-    <NotificationContext.Provider
-      value={{ notifications, unreadCount, markAsRead }}
-    >
+    <NotificationContext.Provider value={contextValue}>
       {children}
     </NotificationContext.Provider>
   );
+
 }
 
 export function useNotifications() {
+
   const context = useContext(NotificationContext);
 
   if (!context) {
@@ -174,4 +315,5 @@ export function useNotifications() {
   }
 
   return context;
+
 }
