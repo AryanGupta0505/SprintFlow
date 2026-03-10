@@ -28,6 +28,7 @@ export default async function Page() {
     }
   });
 
+  
   const users = await getUsers();
   const transactions = await getP2PTransactions();
 
