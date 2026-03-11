@@ -17,10 +17,10 @@ async function startServer() {
   // 🔥 Attach WebSocket ONCE
   initWebSocket(server);
 
-  const PORT = 3001;
+  // const PORT = 3001;
 
-  server.listen(PORT, () => {
-    console.log(`🚀 User-app running on http://localhost:${PORT}`);
+  server.listen(process.env.PORT, () => {
+    console.log(`🚀 User-app running on http://localhost:${process.env.PORT}`);
   });
 }
 

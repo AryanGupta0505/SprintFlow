@@ -90,7 +90,9 @@ export function NotificationProvider({
       const wsProtocol =
         window.location.protocol === "https:" ? "wss" : "ws";
 
-      const wsUrl = `${wsProtocol}://${window.location.host}/ws`;
+      const wsUrl =
+  process.env.NEXT_PUBLIC_WS_URL ||
+  `${wsProtocol}://${window.location.host}/ws`;
 
       const socket = new WebSocket(wsUrl);
 
