@@ -17,11 +17,11 @@ async function startServer() {
   // 🔥 Attach WebSocket ONCE
   initWebSocket(server);
 
-  // const PORT = 3001;
+const PORT = Number(process.env.PORT) || 3001;
 
-  server.listen(process.env.PORT, () => {
-    console.log(`🚀 User-app running on http://localhost:${process.env.PORT}`);
-  });
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 User-app running on port ${PORT}`);
+});
 }
 
 startServer();
