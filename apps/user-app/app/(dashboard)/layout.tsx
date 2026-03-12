@@ -63,7 +63,6 @@ export default async function Layout({
   const locked = balance?.locked ?? 0;
 
   return (
-    <NotificationProvider> {/* ✅ added */}
       <BalanceProvider initialAmount={amount} initialLocked={locked}>
         <DashboardShell
           sidebar={
@@ -83,6 +82,5 @@ export default async function Layout({
           {children}
         </DashboardShell>
       </BalanceProvider>
-    </NotificationProvider>  
   );
 }

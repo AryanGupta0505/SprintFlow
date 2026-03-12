@@ -44,17 +44,42 @@ export function initWebSocket(server: any) {
 
       (req as IncomingMessage & { cookies: any }).cookies = cookies;
 
-      const token = await getToken({
-        req: req as any,
-        secret: process.env.NEXTAUTH_SECRET,
-      });
+      // const token = await getToken({
+      //   req: req as any,
+      //   secret: process.env.NEXTAUTH_SECRET,
+      // });
+      const url = new URL(req.url || "", `http://${req.headers.host}`);
+const userIdFromQuery = url.searchParams.get("token");
 
-      if (!token || !token.sub) {
-        ws.close(1008);
-        return;
-      }
+let userId: number | null = null;
 
-      const userId = Number(token.sub);
+if (userIdFromQuery) {
+  const parsed = Number(userIdFromQuery);
+  if (!isNaN(parsed)) {
+    userId = parsed;
+  }
+} else {
+  const token = await getToken({
+    req: req as any,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  if (token?.sub) {
+    userId = Number(token.sub);
+  }
+}
+
+if (!userId) {
+  console.log("❌ WS Auth failed");
+  ws.close(1008);
+  return;
+}
+      // if (!token || !token.sub) {
+      //   ws.close(1008);
+      //   return;
+      // }
+
+      // const userId = Number(token.sub);
 
       (ws as any).userId = userId;
       state.clients.set(userId, ws);

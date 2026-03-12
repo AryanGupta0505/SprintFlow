@@ -83,17 +83,23 @@ export function NotificationProvider({
        CONNECT WEBSOCKET
     ========================= */
 
-    const connectWebSocket = () => {
+    const connectWebSocket = async () => {
 
       if (socketRef.current?.readyState === WebSocket.OPEN) return;
 
       const wsProtocol =
         window.location.protocol === "https:" ? "wss" : "ws";
 
-      const wsUrl =
+  //     const wsUrl =
+  // process.env.NEXT_PUBLIC_WS_URL ||
+  // `${wsProtocol}://${window.location.host}/ws`;
+        const session = await fetch("/api/auth/session").then(r => r.json());
+
+const base =
   process.env.NEXT_PUBLIC_WS_URL ||
   `${wsProtocol}://${window.location.host}/ws`;
 
+const wsUrl = `${base}?token=${session?.user?.id}`;
       const socket = new WebSocket(wsUrl);
 
       socket.onopen = async () => {
