@@ -18,6 +18,8 @@ async function startServer() {
     handle(req, res);
   });
 
+  
+
   // 🔥 Attach WebSocket ONCE
   initWebSocket(server);
 
