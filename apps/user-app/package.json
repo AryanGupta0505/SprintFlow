@@ -6,7 +6,7 @@
 
     "dev": "tsx server.ts",
     "build": "next build",
-    "start": "next start",
+    "start": "node server.ts",
     "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {

@@ -4,7 +4,11 @@ import http from "http";
 import { initWebSocket } from "./app/lib/ws"; // ✅ IMPORTANT: use alias, not relative path
 
 const dev = process.env.NODE_ENV !== "production";
-const app = next({ dev });
+// const app = next({ dev });
+const app = next({
+  dev,
+  dir: "./apps/user-app"
+});
 const handle = app.getRequestHandler();
 
 async function startServer() {
