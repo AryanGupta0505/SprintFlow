@@ -2,8 +2,8 @@
   "name": "week-18",
   "private": true,
   "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev",
+    "build": "npx turbo build",
+    "dev": "npx turbo dev",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "db:generate": "cd packages/db && npx prisma generate && cd ../..",
