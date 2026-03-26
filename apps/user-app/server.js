@@ -1,9 +1,8 @@
-import next from "next";
-import http from "http";
-import { initWebSocket } from "./app/lib/ws";
+const next = require("next");
+const http = require("http");
+const { initWebSocket } = require("./app/lib/ws");
 
 const dev = process.env.NODE_ENV !== "production";
-
 const PORT = Number(process.env.PORT) || 3001;
 
 const app = next({
@@ -21,7 +20,7 @@ async function startServer() {
     handle(req, res);
   });
 
-  // 🔥 Attach WebSocket
+  // 🔥 Attach WebSocket (IMPORTANT)
   initWebSocket(server);
 
   server.listen(PORT, "0.0.0.0", () => {
