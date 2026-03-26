@@ -2,7 +2,7 @@
   "name": "week-18",
   "private": true,
   "scripts": {
-    "build": "turbo build",
+    "build": "npx turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
