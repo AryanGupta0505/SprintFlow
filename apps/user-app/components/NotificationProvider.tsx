@@ -84,146 +84,125 @@ export function NotificationProvider({
     ========================= */
 
     const connectWebSocket = async () => {
+  if (socketRef.current?.readyState === WebSocket.OPEN) return;
 
-      if (socketRef.current?.readyState === WebSocket.OPEN) return;
+  console.log("Trying to connect WS...");
 
-      const wsProtocol =
-        window.location.protocol === "https:" ? "wss" : "ws";
+  const wsProtocol =
+    window.location.protocol === "https:" ? "wss" : "ws";
 
-  //     const wsUrl =
-  // process.env.NEXT_PUBLIC_WS_URL ||
-  // `${wsProtocol}://${window.location.host}/ws`;
-        const session = await fetch("/api/auth/session").then(r => r.json());
+  const base =
+    process.env.NEXT_PUBLIC_WS_URL ||
+    `${wsProtocol}://${window.location.host}/ws`;
 
-const base =
-  process.env.NEXT_PUBLIC_WS_URL ||
-  `${wsProtocol}://${window.location.host}/ws`;
+  try {
+    const sessionRes = await fetch("/api/auth/session");
+    const session = await sessionRes.json();
 
-const wsUrl = `${base}?token=${session?.user?.id}`;
-      const socket = new WebSocket(wsUrl);
+    console.log("SESSION:", session);
 
-      socket.onopen = async () => {
+    // ❌ DO NOT CONNECT if no user
+    if (!session?.user?.id) {
+      console.log("⛔ No session, retrying WS...");
+      setTimeout(connectWebSocket, 1000);
+      return;
+    }
 
-        console.log("🔌 WS Connected (frontend)");
+    const wsUrl = `${base}?token=${session.user.id}`;
 
-        try {
+    console.log("WS URL:", wsUrl);
 
-          const res = await fetch("/api/notifications", {
-            cache: "no-store"
-          });
+    const socket = new WebSocket(wsUrl);
 
-          const data = await res.json();
+    socket.onopen = async () => {
+      console.log("🔌 WS Connected (frontend)");
 
-          setNotifications(data);
+      try {
+        const res = await fetch("/api/notifications", {
+          cache: "no-store"
+        });
 
-        } catch (err) {
-          console.error("Notification sync failed", err);
-        }
-      };
+        const data = await res.json();
+        setNotifications(data);
 
-      socket.onmessage = (event) => {
-
-        console.log("WS MESSAGE:", event.data);
-
-        try {
-
-          const data = JSON.parse(event.data);
-
-          /* =========================
-             NEW NOTIFICATION
-          ========================= */
-
-          if (data.type === "NEW_NOTIFICATION") {
-
-            setNotifications(prev => {
-
-              if (prev.some(n => n.id === data.data.id)) {
-                return prev;
-              }
-
-              return [
-                {
-                  id: data.data.id,
-                  title: data.data.title,
-                  message: data.data.message,
-                  category: data.data.category,
-                  event: data.data.event,
-                  metadata: data.data.metadata ?? null,
-                  createdAt: data.data.createdAt ?? new Date().toISOString(),
-                  isRead: false
-                },
-                ...prev
-              ];
-
-            });
-
-          }
-
-          /* =========================
-             BALANCE UPDATE
-          ========================= */
-
-          if (data.type === "BALANCE_UPDATE") {
-
-            window.dispatchEvent(
-              new CustomEvent("balance-update", {
-                detail: data.data,
-              })
-            );
-
-          }
-
-          /* =========================
-             PAYMENT REQUEST CREATED
-          ========================= */
-
-          if (data.type === "PAYMENT_REQUEST_CREATED") {
-
-            window.dispatchEvent(
-              new CustomEvent("payment-request-created", {
-                detail: data.data,
-              })
-            );
-
-          }
-
-          /* =========================
-             PAYMENT REQUEST UPDATED
-          ========================= */
-
-          if (data.type === "PAYMENT_REQUEST_UPDATED") {
-
-            window.dispatchEvent(
-              new CustomEvent("payment-request-updated", {
-                detail: data.data,
-              })
-            );
-
-          }
-
-        } catch (err) {
-          console.error("Invalid WS message", err);
-        }
-      };
-
-      socket.onclose = (event) => {
-
-        console.log("🔌 WS Closed:", event.code);
-
-        socketRef.current = null;
-
-        reconnectTimeout.current = setTimeout(() => {
-          connectWebSocket();
-        }, 1000);
-
-      };
-
-      socket.onerror = (err) => {
-        console.error("WS Error:", err);
-      };
-
-      socketRef.current = socket;
+      } catch (err) {
+        console.error("Notification sync failed", err);
+      }
     };
+
+    socket.onmessage = (event) => {
+      console.log("WS MESSAGE:", event.data);
+
+      try {
+        const data = JSON.parse(event.data);
+
+        if (data.type === "NEW_NOTIFICATION") {
+          setNotifications(prev => {
+            if (prev.some(n => n.id === data.data.id)) return prev;
+
+            return [{
+              id: data.data.id,
+              title: data.data.title,
+              message: data.data.message,
+              category: data.data.category,
+              event: data.data.event,
+              metadata: data.data.metadata ?? null,
+              createdAt: data.data.createdAt ?? new Date().toISOString(),
+              isRead: false
+            }, ...prev];
+          });
+        }
+
+        if (data.type === "BALANCE_UPDATE") {
+          window.dispatchEvent(
+            new CustomEvent("balance-update", {
+              detail: data.data,
+            })
+          );
+        }
+
+        if (data.type === "PAYMENT_REQUEST_CREATED") {
+          window.dispatchEvent(
+            new CustomEvent("payment-request-created", {
+              detail: data.data,
+            })
+          );
+        }
+
+        if (data.type === "PAYMENT_REQUEST_UPDATED") {
+          window.dispatchEvent(
+            new CustomEvent("payment-request-updated", {
+              detail: data.data,
+            })
+          );
+        }
+
+      } catch (err) {
+        console.error("Invalid WS message", err);
+      }
+    };
+
+    socket.onclose = (event) => {
+      console.log("🔌 WS Closed:", event.code);
+
+      socketRef.current = null;
+
+      reconnectTimeout.current = setTimeout(() => {
+        connectWebSocket();
+      }, 1000);
+    };
+
+    socket.onerror = (err) => {
+      console.error("WS Error:", err);
+    };
+
+    socketRef.current = socket;
+
+  } catch (err) {
+    console.error("WS connection failed", err);
+    setTimeout(connectWebSocket, 1000);
+  }
+};
 
     connectWebSocket();
 

@@ -3,22 +3,21 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-
-    "dev": "tsx server.ts",
-    "build": "next build",
-    "start": "tsx server.ts",
-    "lint": "eslint . --max-warnings 0"
-  },
+  "dev": "tsx server.ts",
+  "build": "next build",
+  "start": "cross-env NODE_ENV=production tsx server.ts"
+},
   "dependencies": {
     "@repo/store": "*",
     "@repo/ui": "*",
-    "@repo/validation":"*",
+    "@repo/validation": "*",
     "@types/bcrypt": "^5.0.2",
     "bcrypt": "^5.1.1",
     "next": "^14.1.1",
     "next-auth": "^4.24.7",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "esbuild": "^0.20.2"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^14.1.1",
