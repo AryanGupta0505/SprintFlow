@@ -198,7 +198,7 @@ setAttempts(newAttempts);
   !isPinComplete ||
   loading ||
   isLocked ||
-  attempts >= MAX_ATTEMPTS - 1
+  attempts >= MAX_ATTEMPTS
 }
                 onClick={handlePay}
                 className={`w-full py-3 rounded-xl text-base font-semibold transition duration-300
