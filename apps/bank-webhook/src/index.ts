@@ -127,37 +127,70 @@ app.post(
         if (freshTxn.status !== "Processing")
           throw new Error("Transaction already processed");
 
-        if (freshTxn.pinAttempts +1 >= MAX_PIN_ATTEMPTS) {
-          await tx.onRampTransaction.update({
-            where: { id: freshTxn.id },
-            data: { status: "Failure" }
-          });
+        // if (freshTxn.pinAttempts +1 >= MAX_PIN_ATTEMPTS) {
+        //   await tx.onRampTransaction.update({
+        //     where: { id: freshTxn.id },
+        //     data: { status: "Failure" }
+        //   });
 
-          // 🔔 NOTIFY FAILURE
-          await notifyUser({
-            userId: freshTxn.userId,
-            category: "TRANSACTION",
-            event: "TRANSACTION_FAILED",
-            title: "Withdrawal Failed",
-            message: `Your ₹${freshTxn.amount} withdrawal failed`,
-            metadata:{
-              // token: freshTxn.token,
-              amount: freshTxn.amount,
-              provider: freshTxn.provider
-            }
-          });
+        //   // 🔔 NOTIFY FAILURE
+        //   await notifyUser({
+        //     userId: freshTxn.userId,
+        //     category: "TRANSACTION",
+        //     event: "TRANSACTION_FAILED",
+        //     title: "Withdrawal Failed",
+        //     message: `Your ₹${freshTxn.amount} withdrawal failed`,
+        //     metadata:{
+        //       // token: freshTxn.token,
+        //       amount: freshTxn.amount,
+        //       provider: freshTxn.provider
+        //     }
+        //   });
 
-          throw new Error("Transaction locked (max attempts)");
-        }
+        //   throw new Error("Transaction locked (max attempts)");
+        // }
 
-        if (!freshTxn.user.upiPin || freshTxn.user.upiPin !== upiPin) {
-          await tx.onRampTransaction.update({
-            where: { id: freshTxn.id },
-            data: { pinAttempts: { increment: 1 } }
-          });
-          throw new Error("Incorrect UPI PIN");
-        }
+        // if (!freshTxn.user.upiPin || freshTxn.user.upiPin !== upiPin) {
+        //   await tx.onRampTransaction.update({
+        //     where: { id: freshTxn.id },
+        //     data: { pinAttempts: { increment: 1 } }
+        //   });
+        //   throw new Error("Incorrect UPI PIN");
+        // }
+        // ❌ WRONG PIN
+if (!freshTxn.user.upiPin || freshTxn.user.upiPin !== upiPin) {
 
+  // 🔥 STEP 1: increment FIRST
+  const updatedTxn = await tx.onRampTransaction.update({
+    where: { id: freshTxn.id },
+    data: { pinAttempts: { increment: 1 } }
+  });
+
+  // 🔥 STEP 2: check AFTER increment
+  if (updatedTxn.pinAttempts >= MAX_PIN_ATTEMPTS) {
+
+    await tx.onRampTransaction.update({
+      where: { id: freshTxn.id },
+      data: { status: "Failure" }
+    });
+
+    await notifyUser({
+      userId: updatedTxn.userId,
+      category: "TRANSACTION",
+      event: "TRANSACTION_FAILED",
+      title: "Withdrawal Failed",
+      message: `Your ₹${updatedTxn.amount} withdrawal failed`,
+      metadata: {
+        amount: updatedTxn.amount,
+        provider: updatedTxn.provider
+      }
+    });
+
+    throw new Error("Transaction locked (max attempts)");
+  }
+
+  throw new Error("Incorrect UPI PIN");
+}
         await tx.$queryRaw`
           SELECT * FROM "Balance"
           WHERE "userId" = ${freshTxn.userId}
@@ -248,36 +281,66 @@ app.post(
         if (freshTxn.status !== "Processing")
           throw new Error("Transaction already processed");
 
-        if (freshTxn.pinAttempts +1 >= MAX_PIN_ATTEMPTS) {
-          await tx.offRampTransaction.update({
-            where: { id: freshTxn.id },
-            data: { status: "Failure" }
-          });
+        // if (freshTxn.pinAttempts +1 >= MAX_PIN_ATTEMPTS) {
+        //   await tx.offRampTransaction.update({
+        //     where: { id: freshTxn.id },
+        //     data: { status: "Failure" }
+        //   });
 
-          await notifyUser({
-            userId: freshTxn.userId,
-            category: "TRANSACTION",
-            event: "TRANSACTION_FAILED",
-            title: "Deposit Failed",
-            message: `Your ₹${freshTxn.amount} deposit failed`,
-            metadata:{
-              // token: freshTxn.token,
-              amount: freshTxn.amount,
-              provider: freshTxn.provider
-            }
-          });
+        //   await notifyUser({
+        //     userId: freshTxn.userId,
+        //     category: "TRANSACTION",
+        //     event: "TRANSACTION_FAILED",
+        //     title: "Deposit Failed",
+        //     message: `Your ₹${freshTxn.amount} deposit failed`,
+        //     metadata:{
+        //       // token: freshTxn.token,
+        //       amount: freshTxn.amount,
+        //       provider: freshTxn.provider
+        //     }
+        //   });
 
-          throw new Error("Transaction locked (max attempts)");
-        }
+        //   throw new Error("Transaction locked (max attempts)");
+        // }
 
+        // if (!freshTxn.user.upiPin || freshTxn.user.upiPin !== upiPin) {
+        //   await tx.offRampTransaction.update({
+        //     where: { id: freshTxn.id },
+        //     data: { pinAttempts: { increment: 1 } }
+        //   });
+        //   throw new Error("Incorrect UPI PIN");
+        // }
         if (!freshTxn.user.upiPin || freshTxn.user.upiPin !== upiPin) {
-          await tx.offRampTransaction.update({
-            where: { id: freshTxn.id },
-            data: { pinAttempts: { increment: 1 } }
-          });
-          throw new Error("Incorrect UPI PIN");
-        }
 
+  const updatedTxn = await tx.offRampTransaction.update({
+    where: { id: freshTxn.id },
+    data: { pinAttempts: { increment: 1 } }
+  });
+
+  if (updatedTxn.pinAttempts >= MAX_PIN_ATTEMPTS) {
+
+    await tx.offRampTransaction.update({
+      where: { id: freshTxn.id },
+      data: { status: "Failure" }
+    });
+
+    await notifyUser({
+      userId: updatedTxn.userId,
+      category: "TRANSACTION",
+      event: "TRANSACTION_FAILED",
+      title: "Deposit Failed",
+      message: `Your ₹${updatedTxn.amount} deposit failed`,
+      metadata: {
+        amount: updatedTxn.amount,
+        provider: updatedTxn.provider
+      }
+    });
+
+    throw new Error("Transaction locked (max attempts)");
+  }
+
+  throw new Error("Incorrect UPI PIN");
+}
         await tx.$queryRaw`
           SELECT * FROM "Balance"
           WHERE "userId" = ${freshTxn.userId}
