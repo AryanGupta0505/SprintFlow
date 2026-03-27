@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       category: "TRANSACTION",
       event: "TRANSACTION_EXPIRED",
       title: "Transaction Expired",
-      message: `Your ₹${transfer.amount} transfer expired`,
+      message: `Your ₹${transfer.amount/100} transfer expired`,
     });
 
     return NextResponse.json({
@@ -114,7 +114,7 @@ export async function POST(req: Request) {
         category: "TRANSACTION",
         event: "TRANSACTION_FAILED",
         title: "Transaction Failed",
-        message: `Your ₹${transfer.amount} transfer failed`,
+        message: `Your ₹${transfer.amount/100} transfer failed`,
         metadata: {
           phone: receiver.number,
           amount: transfer.amount
@@ -318,7 +318,7 @@ export async function POST(req: Request) {
         category: "TRANSACTION",
         event: "TRANSACTION_FAILED",
         title: "Transaction Failed",
-        message: `Your ₹${transfer.amount} transfer failed`,
+        message: `Your ₹${transfer.amount/100} transfer failed`,
         metadata: {
           phone: receiver.number,
           amount: transfer.amount

@@ -39,7 +39,17 @@ export function P2PTransactions({
       router.refresh();
     }
   }, [searchParams, router]);
+  useEffect(() => {
+  const handleFocus = () => {
+    router.refresh();
+  };
 
+  window.addEventListener("focus", handleFocus);
+
+  return () => {
+    window.removeEventListener("focus", handleFocus);
+  };
+}, [router]);
   /* =========================
      LIVE CLOCK
   ========================= */
@@ -140,7 +150,7 @@ export function P2PTransactions({
           <div className="max-h-[500px] overflow-y-auto pr-2 space-y-4 pt-5">
 
             {/* TRANSACTION LIST */}
-            {paginatedTransactions.map((t) => {
+            {/* {paginatedTransactions.map((t) => {
               const isSender = Number(t.fromUserId) === Number(userId);
 
               let remainingTime = 0;
@@ -151,8 +161,27 @@ export function P2PTransactions({
                   (start + ONE_MINUTE * 1000 - now) / 1000
                 );
                 remainingTime = diff > 0 ? diff : 0;
-              }
+              } */}
+            {paginatedTransactions.map((t) => {
+  const isSender = Number(t.fromUserId) === Number(userId);
 
+  const start = new Date(t.timestamp).getTime();
+  const diff = now - start;
+
+  const isExpired =
+    t.status === "Processing" &&
+    diff >= ONE_MINUTE * 1000;
+
+  const displayStatus = isExpired ? "Failure" : t.status;
+
+  let remainingTime = 0;
+
+  if (displayStatus === "Processing") {
+    const remaining = Math.floor(
+      (start + ONE_MINUTE * 1000 - now) / 1000
+    );
+    remainingTime = remaining > 0 ? remaining : 0;
+  }
               return (
                 <div
                   key={t.id}
@@ -180,13 +209,13 @@ export function P2PTransactions({
                       {new Date(t.timestamp).toLocaleString()}
                     </div>
 
-                    {t.status === "Processing" && remainingTime > 0 && (
+                    {displayStatus === "Processing" && remainingTime > 0 && (
                       <div className="text-xs text-orange-500 mt-1">
                         Expires in {remainingTime}s
                       </div>
                     )}
 
-                    {t.status === "Processing" && remainingTime === 0 && (
+                    {displayStatus === "Processing" && remainingTime === 0 && (
                       <div className="text-xs text-red-500 mt-1">
                         Expired
                       </div>
@@ -195,14 +224,14 @@ export function P2PTransactions({
 
                   <div
                     className={`text-xs font-medium px-3 py-1 rounded-full ${
-                      t.status === "Success"
-                        ? "bg-green-100 text-green-600"
-                        : t.status === "Processing"
-                        ? "bg-yellow-100 text-yellow-600"
-                        : "bg-red-100 text-red-600"
-                    }`}
+  displayStatus === "Success"
+    ? "bg-green-100 text-green-600"
+    : displayStatus === "Processing"
+    ? "bg-yellow-100 text-yellow-600"
+    : "bg-red-100 text-red-600"
+}`}
                   >
-                    {t.status}
+                    {displayStatus}
                   </div>
                 </div>
               );

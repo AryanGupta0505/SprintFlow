@@ -101,10 +101,25 @@ export function PayPage() {
         }, 1500);
       } else {
         setErrorMessage(res.data.message);
-
+        if (!res.data.success) {
+  setTimeout(() => {
+    window.location.replace(
+      `${import.meta.env.VITE_USER_APP_URL}/transfer?refresh=` + Date.now()
+    );
+  }, 2000);
+}
         if (res.data.message?.toLowerCase().includes("locked")) {
-          setIsLocked(true);
-        }
+  setIsLocked(true);
+
+  // ✅ ADD THIS REDIRECT
+  setTimeout(() => {
+    window.location.replace(
+      `${import.meta.env.VITE_USER_APP_URL}/transfer?refresh=` + Date.now()
+    );
+  }, 1500);
+
+  return; // ✅ VERY IMPORTANT
+}
 
         setPin(["", "", "", ""]);
         inputsRef.current[0]?.focus();
