@@ -104,8 +104,11 @@ const MAX_ATTEMPTS = 3;
       } else {
   setErrorMessage(res.data.message);
 
-// ✅ WAIT FOR BACKEND LOCK RESPONSE
-if (res.data.message?.toLowerCase().includes("locked")) {
+// ✅ backend lock check
+if (
+  res.data.message?.toLowerCase().includes("locked") ||
+  res.data.message?.toLowerCase().includes("max attempts")
+) {
   setIsLocked(true);
 
   setTimeout(() => {
@@ -116,9 +119,22 @@ if (res.data.message?.toLowerCase().includes("locked")) {
   return;
 }
 
-// ❗ Normal wrong PIN
-setAttempts(prev => prev + 1);
+// ❗ fallback (frontend safety)
+const newAttempts = attempts + 1;
+setAttempts(newAttempts);
 
+if (newAttempts >= MAX_ATTEMPTS) {
+  setIsLocked(true);
+
+  setTimeout(() => {
+    window.location.href =
+      `${import.meta.env.VITE_USER_APP_URL}/transfer?refresh=` + Date.now();
+  }, 1500);
+
+  return;
+}
+
+// ❗ normal wrong PIN
 setPin(["", "", "", ""]);
 inputsRef.current[0]?.focus();
 }
