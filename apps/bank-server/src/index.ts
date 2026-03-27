@@ -88,7 +88,7 @@ app.post("/bank/onramptransaction", async (req, res) => {
       category: "TRANSACTION",
       event: "TRANSACTION_EXPIRED",
       title: "Withdrawal Expired",
-      message: `Your ₹${existing.amount} withdrawal expired`,
+      message: `Your ₹${existing.amount/100} withdrawal expired`,
       metadata:{
         // token: existing.token,
         amount: existing.amount,
@@ -180,7 +180,7 @@ app.post("/bank/offramptransaction", async (req, res) => {
       category: "TRANSACTION",
       event: "TRANSACTION_EXPIRED",
       title: "Deposit Expired",
-      message: `Your ₹${existing.amount} deposit expired`,
+      message: `Your ₹${existing.amount/100} deposit expired`,
       metadata:{
         // token: existing.token,
         amount: existing.amount,
@@ -288,7 +288,7 @@ const cleanupExpiredTransactions = async () => {
       category: "TRANSACTION",
       event: "TRANSACTION_EXPIRED",
       title: "Withdrawal Expired",
-      message: `Your ₹${txn.amount} withdrawal expired`,
+      message: `Your ₹${txn.amount/100} withdrawal expired`,
       metadata:{
         // token: txn.token,
         amount: txn.amount,
@@ -304,7 +304,7 @@ const cleanupExpiredTransactions = async () => {
       category: "TRANSACTION",
       event: "TRANSACTION_EXPIRED",
       title: "Deposit Expired",
-      message: `Your ₹${txn.amount} deposit expired`,
+      message: `Your ₹${txn.amount/100} deposit expired`,
       metadata:{
         // token: txn.token,
         amount: txn.amount,

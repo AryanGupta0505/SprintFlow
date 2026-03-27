@@ -139,7 +139,7 @@ app.post(
             category: "TRANSACTION",
             event: "TRANSACTION_FAILED",
             title: "Withdrawal Failed",
-            message: `Your ₹${freshTxn.amount} withdrawal failed`,
+            message: `Your ₹${freshTxn.amount/100} withdrawal failed`,
             metadata:{
               // token: freshTxn.token,
               amount: freshTxn.amount,
@@ -259,7 +259,7 @@ app.post(
             category: "TRANSACTION",
             event: "TRANSACTION_FAILED",
             title: "Deposit Failed",
-            message: `Your ₹${freshTxn.amount} deposit failed`,
+            message: `Your ₹${freshTxn.amount/100} deposit failed`,
             metadata:{
               // token: freshTxn.token,
               amount: freshTxn.amount,
@@ -299,7 +299,7 @@ app.post(
             category: "TRANSACTION",
             event: "TRANSACTION_FAILED",
             title: "Deposit Failed",
-            message: `Your ₹${freshTxn.amount} deposit failed`,
+            message: `Your ₹${freshTxn.amount/100} deposit failed`,
             metadata:{
               // token: freshTxn.token,
               amount: freshTxn.amount,

@@ -46,20 +46,20 @@ export const Transactions = ({
   /* ===========================
      AUTO REFRESH WHEN EXPIRED
   =========================== */
-  useEffect(() => {
-    const hasExpired = transactions.some((t) => {
-      if (t.status !== "Processing") return false;
+  // useEffect(() => {
+  //   const hasExpired = transactions.some((t) => {
+  //     if (t.status !== "Processing") return false;
 
-      const startTime = new Date(t.time).getTime();
-      const diff = now - startTime;
+  //     const startTime = new Date(t.time).getTime();
+  //     const diff = now - startTime;
 
-      return diff >= 60 * 1000;
-    });
+  //     return diff >= 60 * 1000;
+  //   });
 
-    if (hasExpired) {
-      router.refresh();
-    }
-  }, [now, transactions, router]);
+  //   if (hasExpired) {
+  //     router.refresh();
+  //   }
+  // }, [now, transactions, router]);
 
   /* ===========================
      FILTERING
@@ -127,19 +127,35 @@ export const Transactions = ({
           <div className="max-h-[500px] overflow-y-auto">
             <div className="space-y-4 pr-4">
 
-              {paginatedTransactions.map((t, index) => {
+              {/* {paginatedTransactions.map((t, index) => {
                 const isOnRamp = t.type === "onramp";
                 const startTime = new Date(t.time).getTime();
                 const diff = now - startTime;
-                const remaining = 60 - Math.floor(diff / 1000);
+                const remaining = 60 - Math.floor(diff / 1000); */}
+              {paginatedTransactions.map((t, index) => {
+  const isOnRamp = t.type === "onramp";
+  const startTime = new Date(t.time).getTime();
+  const diff = now - startTime;
 
+  const isExpired =
+    t.status === "Processing" &&
+    diff >= 60 * 1000;
+
+  const displayStatus = isExpired ? "Failure" : t.status;
+
+  const remaining = Math.max(0, 60 - Math.floor(diff / 1000));
+                // const statusColor =
+                //   t.status === "Success"
+                //     ? "bg-green-100 text-green-700"
+                //     : t.status === "Processing"
+                //     ? "bg-yellow-100 text-yellow-700"
+                //     : "bg-red-100 text-red-700";
                 const statusColor =
-                  t.status === "Success"
-                    ? "bg-green-100 text-green-700"
-                    : t.status === "Processing"
-                    ? "bg-yellow-100 text-yellow-700"
-                    : "bg-red-100 text-red-700";
-
+  displayStatus === "Success"
+    ? "bg-green-100 text-green-700"
+    : displayStatus === "Processing"
+    ? "bg-yellow-100 text-yellow-700"
+    : "bg-red-100 text-red-700";
                 return (
                   <div
                     key={`${t.provider}-${t.time}-${index}`}
@@ -160,10 +176,11 @@ export const Transactions = ({
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}
                         >
-                          {t.status}
+                          {/* {t.status} */}
+                          {displayStatus}
                         </span>
 
-                        {t.status === "Processing" && remaining > 0 && (
+                        {displayStatus === "Processing" && remaining > 0 && (
                           <span className="text-xs text-yellow-600 font-medium">
                             ⏳ {remaining}s
                           </span>
