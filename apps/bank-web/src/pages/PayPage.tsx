@@ -104,24 +104,23 @@ const MAX_ATTEMPTS = 3;
       } else {
   setErrorMessage(res.data.message);
 
-  const newAttempts = attempts + 1;
-  setAttempts(newAttempts);
+// ✅ WAIT FOR BACKEND LOCK RESPONSE
+if (res.data.message?.toLowerCase().includes("locked")) {
+  setIsLocked(true);
 
-  // 🔥 LOCK UI
-  if (newAttempts >= MAX_ATTEMPTS) {
-    setIsLocked(true);
+  setTimeout(() => {
+    window.location.href =
+      `${import.meta.env.VITE_USER_APP_URL}/transfer?refresh=` + Date.now();
+  }, 1500);
 
-    setTimeout(() => {
-      window.location.href =
-        `${import.meta.env.VITE_USER_APP_URL}/transfer?refresh=` + Date.now();
-    }, 1500);
+  return;
+}
 
-    return;
-  }
+// ❗ Normal wrong PIN
+setAttempts(prev => prev + 1);
 
-  // ❗ normal wrong PIN
-  setPin(["", "", "", ""]);
-  inputsRef.current[0]?.focus();
+setPin(["", "", "", ""]);
+inputsRef.current[0]?.focus();
 }
     } catch {
       setErrorMessage("Payment failed. Please try again.");
