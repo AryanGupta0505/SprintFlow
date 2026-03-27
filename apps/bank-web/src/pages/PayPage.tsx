@@ -104,22 +104,22 @@ const MAX_ATTEMPTS = 3;
       } else {
   setErrorMessage(res.data.message);
 
-  // ✅ FIRST handle LOCK
-  if (res.data.message?.toLowerCase().includes("locked")) {
+  const newAttempts = attempts + 1;
+  setAttempts(newAttempts);
+
+  // 🔥 LOCK UI
+  if (newAttempts >= MAX_ATTEMPTS) {
     setIsLocked(true);
 
     setTimeout(() => {
-      window.location.replace(
-        `${import.meta.env.VITE_USER_APP_URL}/transfer?refresh=` + Date.now()
-      );
+      window.location.href =
+        `${import.meta.env.VITE_USER_APP_URL}/transfer?refresh=` + Date.now();
     }, 1500);
 
-    return; // ✅ VERY IMPORTANT
+    return;
   }
 
-  // ✅ THEN handle wrong PIN
-  setAttempts(prev => prev + 1);
-
+  // ❗ normal wrong PIN
   setPin(["", "", "", ""]);
   inputsRef.current[0]?.focus();
 }
@@ -199,8 +199,7 @@ const MAX_ATTEMPTS = 3;
                 disabled={
   !isPinComplete ||
   loading ||
-  isLocked ||
-  attempts >= MAX_ATTEMPTS
+  isLocked
 }
                 onClick={handlePay}
                 className={`w-full py-3 rounded-xl text-base font-semibold transition duration-300
