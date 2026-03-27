@@ -102,25 +102,27 @@ const MAX_ATTEMPTS = 3;
           );
         }, 1500);
       } else {
-        setErrorMessage(res.data.message);
-        const newAttempts = attempts + 1;
-setAttempts(newAttempts);
-        if (res.data.message?.toLowerCase().includes("locked")) {
-  setIsLocked(true);
+  setErrorMessage(res.data.message);
 
-  // ✅ ADD THIS REDIRECT
-  setTimeout(() => {
-    window.location.replace(
-      `${import.meta.env.VITE_USER_APP_URL}/transfer?refresh=` + Date.now()
-    );
-  }, 1500);
+  // ✅ FIRST handle LOCK
+  if (res.data.message?.toLowerCase().includes("locked")) {
+    setIsLocked(true);
 
-  return; // ✅ VERY IMPORTANT
+    setTimeout(() => {
+      window.location.replace(
+        `${import.meta.env.VITE_USER_APP_URL}/transfer?refresh=` + Date.now()
+      );
+    }, 1500);
+
+    return; // ✅ VERY IMPORTANT
+  }
+
+  // ✅ THEN handle wrong PIN
+  setAttempts(prev => prev + 1);
+
+  setPin(["", "", "", ""]);
+  inputsRef.current[0]?.focus();
 }
-
-        setPin(["", "", "", ""]);
-        inputsRef.current[0]?.focus();
-      }
     } catch {
       setErrorMessage("Payment failed. Please try again.");
     }

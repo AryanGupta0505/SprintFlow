@@ -41,9 +41,8 @@ export function P2PTransactions({
   }, [searchParams, router]);
   useEffect(() => {
   const handlePageShow = (event: any) => {
-    // 🔥 Detect browser back / cache restore
     if (event.persisted) {
-      router.refresh();
+      window.location.reload(); // 🔥 HARD FIX
     }
   };
 
@@ -52,7 +51,7 @@ export function P2PTransactions({
   return () => {
     window.removeEventListener("pageshow", handlePageShow);
   };
-}, [router]);
+}, []);
   /* =========================
      LIVE CLOCK
   ========================= */
