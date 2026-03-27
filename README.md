@@ -12,7 +12,7 @@ SprintFlow replicates the core experience of **UPI-style payment systems**, enab
 
 **User Application**
 
-👉 https://sprint-flow-sigma.vercel.app/
+👉 https://sprintflow-rmhh.onrender.com
 
 *(Use two accounts to test P2P transfers and payment request flows)*
 
@@ -330,10 +330,10 @@ SprintFlow is deployed using modern cloud platforms.
 
 | Service | Platform |
 |--------|---------|
-| User App | Vercel |
-| Bank Server | Railway |
+| User App | Render |
+| Bank Server | Render |
 | Bank Web | Vercel |
-| Bank Webhook | Railway |
+| Bank Webhook | Render |
 | Database | PostgreSQL (Cloud) |
 
 ---
