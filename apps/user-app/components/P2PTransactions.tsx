@@ -40,14 +40,17 @@ export function P2PTransactions({
     }
   }, [searchParams, router]);
   useEffect(() => {
-  const handleFocus = () => {
-    router.refresh();
+  const handlePageShow = (event: any) => {
+    // 🔥 Detect browser back / cache restore
+    if (event.persisted) {
+      router.refresh();
+    }
   };
 
-  window.addEventListener("focus", handleFocus);
+  window.addEventListener("pageshow", handlePageShow);
 
   return () => {
-    window.removeEventListener("focus", handleFocus);
+    window.removeEventListener("pageshow", handlePageShow);
   };
 }, [router]);
   /* =========================

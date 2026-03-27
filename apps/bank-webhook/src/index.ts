@@ -127,7 +127,7 @@ app.post(
         if (freshTxn.status !== "Processing")
           throw new Error("Transaction already processed");
 
-        if (freshTxn.pinAttempts >= MAX_PIN_ATTEMPTS) {
+        if (freshTxn.pinAttempts +1 >= MAX_PIN_ATTEMPTS) {
           await tx.onRampTransaction.update({
             where: { id: freshTxn.id },
             data: { status: "Failure" }
@@ -248,7 +248,7 @@ app.post(
         if (freshTxn.status !== "Processing")
           throw new Error("Transaction already processed");
 
-        if (freshTxn.pinAttempts >= MAX_PIN_ATTEMPTS) {
+        if (freshTxn.pinAttempts +1 >= MAX_PIN_ATTEMPTS) {
           await tx.offRampTransaction.update({
             where: { id: freshTxn.id },
             data: { status: "Failure" }
