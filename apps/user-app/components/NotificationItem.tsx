@@ -9,6 +9,7 @@ import {
   ArrowDownIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/solid";
+import { XCircleIcon } from "@heroicons/react/24/solid";
 
 export default function NotificationItem({
   notification,
@@ -115,20 +116,53 @@ if (event === "PAYMENT_REQUEST_ACCEPTED") {
     bg = "bg-yellow-50";
     iconBg = "bg-yellow-100";
   }
+/* -------------------------
+   FAILURE EVENTS
+-------------------------- */
 
+if (event === "TRANSACTION_FAILED") {
+  direction = null;
+  color = "text-red-600";
+  bg = "bg-red-50";
+  iconBg = "bg-red-100";
+
+  message =
+    metadata?.amount
+      ? `₹${metadata.amount / 100} transaction failed`
+      : "Transaction failed";
+}
+
+if (event === "TRANSACTION_EXPIRED") {
+  direction = null;
+  color = "text-orange-600";
+  bg = "bg-orange-50";
+  iconBg = "bg-orange-100";
+
+  message =
+    metadata?.amount
+      ? `₹${metadata.amount / 100} transaction expired`
+      : "Transaction expired";
+}
   /* -------------------------
      ICON
   -------------------------- */
 
   let icon = null;
-
-  if (notification.category === "SECURITY") {
-    icon = <ShieldCheckIcon className="w-6 h-6 text-yellow-600" />;
-  } else if (direction === "UP") {
-    icon = <ArrowUpIcon className="w-6 h-6 text-red-600" />;
-  } else if (direction === "DOWN") {
-    icon = <ArrowDownIcon className="w-6 h-6 text-green-600" />;
-  }
+if (notification.category === "SECURITY") {
+  icon = <ShieldCheckIcon className="w-6 h-6 text-yellow-600" />;
+} 
+else if (
+  event === "TRANSACTION_FAILED" ||
+  event === "TRANSACTION_EXPIRED"
+) {
+  icon = <XCircleIcon className="w-6 h-6 text-red-600" />;
+}
+else if (direction === "UP") {
+  icon = <ArrowUpIcon className="w-6 h-6 text-red-600" />;
+} 
+else if (direction === "DOWN") {
+  icon = <ArrowDownIcon className="w-6 h-6 text-green-600" />;
+}
 
   return (
     <div

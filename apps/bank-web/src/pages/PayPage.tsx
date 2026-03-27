@@ -12,6 +12,8 @@ export function PayPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+const MAX_ATTEMPTS = 3;
   const [isExpired, setIsExpired] = useState(false);
 
   const [pin, setPin] = useState(["", "", "", ""]);
@@ -101,13 +103,8 @@ export function PayPage() {
         }, 1500);
       } else {
         setErrorMessage(res.data.message);
-        if (!res.data.success) {
-  setTimeout(() => {
-    window.location.replace(
-      `${import.meta.env.VITE_USER_APP_URL}/transfer?refresh=` + Date.now()
-    );
-  }, 2000);
-}
+        const newAttempts = attempts + 1;
+setAttempts(newAttempts);
         if (res.data.message?.toLowerCase().includes("locked")) {
   setIsLocked(true);
 
@@ -169,8 +166,10 @@ export function PayPage() {
                   Enter UPI PIN
                 </h3>
                 <p className="text-gray-500 text-xs">
-                  3 incorrect attempts will lock this transaction
-                </p>
+  {attempts === 0
+    ? "3 incorrect attempts will lock this transaction"
+    : `Attempts left: ${MAX_ATTEMPTS - attempts}`}
+</p>
               </div>
 
               <div className="flex justify-center gap-4 mb-8">
@@ -195,7 +194,12 @@ export function PayPage() {
 
               <button
                 ref={buttonRef}
-                disabled={!isPinComplete || loading || isLocked}
+                disabled={
+  !isPinComplete ||
+  loading ||
+  isLocked ||
+  attempts >= MAX_ATTEMPTS - 1
+}
                 onClick={handlePay}
                 className={`w-full py-3 rounded-xl text-base font-semibold transition duration-300
                   ${
