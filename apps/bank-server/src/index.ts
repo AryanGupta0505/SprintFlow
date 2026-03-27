@@ -31,6 +31,7 @@ async function notifyUser(data: any) {
    CREATE / REUSE ONRAMP TRANSACTION
 ===================================== */
 app.post("/bank/onramptransaction", async (req, res) => {
+  await cleanupExpiredTransactions();
   const { userId, amount, webhookUrl, provider } = req.body;
 
   if (!userId || !amount || !webhookUrl) {
@@ -122,6 +123,7 @@ app.post("/bank/onramptransaction", async (req, res) => {
    CREATE / REUSE OFFRAMP TRANSACTION
 ===================================== */
 app.post("/bank/offramptransaction", async (req, res) => {
+  await cleanupExpiredTransactions();
   const { userId, amount, webhookUrl, provider } = req.body;
 
   if (!userId || !amount || !webhookUrl) {
@@ -213,6 +215,7 @@ app.post("/bank/offramptransaction", async (req, res) => {
    FETCH TRANSACTION (RESTORED)
 ===================================== */
 app.get("/bank/onramptransaction/:token", async (req, res) => {
+  await cleanupExpiredTransactions();
   const txn = await db.onRampTransaction.findUnique({
     where: { token: req.params.token }
   });
@@ -228,6 +231,7 @@ app.get("/bank/onramptransaction/:token", async (req, res) => {
 });
 
 app.get("/bank/offramptransaction/:token", async (req, res) => {
+  await cleanupExpiredTransactions();
   const txn = await db.offRampTransaction.findUnique({
     where: { token: req.params.token }
   });

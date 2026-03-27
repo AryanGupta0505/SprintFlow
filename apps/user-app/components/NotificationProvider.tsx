@@ -253,7 +253,7 @@ export function NotificationProvider({
      MARK ALL AS READ
   ========================= */
 
-  const markAllAsRead = useCallback(async () => {
+ const markAllAsRead = useCallback(async () => {
   try {
 
     await fetch("/api/notifications/read/all", {
@@ -266,7 +266,7 @@ export function NotificationProvider({
         isRead: true
       }))
     );
-    window.location.reload()
+
   } catch (err) {
     console.error("Failed to mark all as read", err);
   }
