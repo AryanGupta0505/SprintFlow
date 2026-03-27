@@ -186,7 +186,10 @@ if (!freshTxn.user.upiPin || freshTxn.user.upiPin !== upiPin) {
       }
     });
 
-    throw new Error("Transaction locked (max attempts)");
+   return res.json({
+  success: false,
+  message: "Transaction locked (max attempts)"
+});
   }
 
   throw new Error("Incorrect UPI PIN");
@@ -336,7 +339,10 @@ app.post(
       }
     });
 
-    throw new Error("Transaction locked (max attempts)");
+    return res.json({
+  success: false,
+  message: "Transaction locked (max attempts)"
+});
   }
 
   throw new Error("Incorrect UPI PIN");
