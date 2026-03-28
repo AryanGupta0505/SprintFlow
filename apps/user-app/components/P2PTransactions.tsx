@@ -36,22 +36,24 @@ export function P2PTransactions({
   useEffect(() => {
     const refresh = searchParams.get("refresh");
     if (refresh) {
-      router.refresh();
+      router.replace("/p2p"); // remove param
+    router.refresh();      // fetch fresh data
     }
   }, [searchParams, router]);
-  useEffect(() => {
-  const handlePageShow = (event: any) => {
-    if (event.persisted) {
-      window.location.reload(); // 🔥 HARD FIX
+  
+useEffect(() => {
+  const handleVisibility = () => {
+    if (document.visibilityState === "visible") {
+      router.refresh(); // 🔥 fixes back button stale data
     }
   };
 
-  window.addEventListener("pageshow", handlePageShow);
+  document.addEventListener("visibilitychange", handleVisibility);
 
   return () => {
-    window.removeEventListener("pageshow", handlePageShow);
+    document.removeEventListener("visibilitychange", handleVisibility);
   };
-}, []);
+}, [router]);
   /* =========================
      LIVE CLOCK
   ========================= */
