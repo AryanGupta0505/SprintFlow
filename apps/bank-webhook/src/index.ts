@@ -181,10 +181,33 @@ app.post(
             }
           });
         } else {
-          await tx.balance.update({
-            where: { userId: freshTxn.userId },
-            data: { amount: { increment: freshTxn.amount } }
-          });
+          // await tx.balance.update({
+          //   where: { userId: freshTxn.userId },
+          //   data: { amount: { increment: freshTxn.amount } }
+          // });
+          const user = freshTxn.user;
+
+const totalAfter = balance.amount + freshTxn.amount;
+
+let amountToAdd = freshTxn.amount;
+let lockedToAdd = 0;
+
+if (user.autoReserveEnabled && user.autoReserveLimit !== null) {
+  if (totalAfter > user.autoReserveLimit) {
+    const overflow = totalAfter - user.autoReserveLimit;
+
+    lockedToAdd = Math.min(overflow, freshTxn.amount);
+    amountToAdd = freshTxn.amount - lockedToAdd;
+  }
+}
+
+await tx.balance.update({
+  where: { userId: freshTxn.userId },
+  data: {
+    amount: { increment: amountToAdd },
+    locked: { increment: lockedToAdd }
+  }
+});
         }
 
         await tx.onRampTransaction.update({

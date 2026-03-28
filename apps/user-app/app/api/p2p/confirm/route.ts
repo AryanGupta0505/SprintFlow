@@ -187,11 +187,35 @@ export async function POST(req: Request) {
         data: { amount: { decrement: transfer.amount } }
       });
 
-      await tx.balance.update({
-        where: { userId: transfer.toUserId },
-        data: { amount: { increment: transfer.amount } }
-      });
+      // await tx.balance.update({
+      //   where: { userId: transfer.toUserId },
+      //   data: { amount: { increment: transfer.amount } }
+      // });
+      const receiverUser = await tx.user.findUnique({
+  where: { id: transfer.toUserId }
+});
 
+const totalAfter = toBalance.amount + transfer.amount;
+
+let amountToAdd = transfer.amount;
+let lockedToAdd = 0;
+
+if (receiverUser?.autoReserveEnabled && receiverUser.autoReserveLimit !== null) {
+  if (totalAfter > receiverUser.autoReserveLimit) {
+    const overflow = totalAfter - receiverUser.autoReserveLimit;
+
+    lockedToAdd = Math.min(overflow, transfer.amount);
+    amountToAdd = transfer.amount - lockedToAdd;
+  }
+}
+
+await tx.balance.update({
+  where: { userId: transfer.toUserId },
+  data: {
+    amount: { increment: amountToAdd },
+    locked: { increment: lockedToAdd }
+  }
+});
       // await tx.p2pTransfer.update({
       //   where: { token },
       //   data: {
