@@ -46,6 +46,9 @@ export async function POST(req: Request) {
       event: "TRANSACTION_EXPIRED",
       title: "Transaction Expired",
       message: `Your ₹${transfer.amount/100} transfer expired`,
+      metadata:{
+        amount:transfer.amount
+      }
     });
 
     return NextResponse.json({

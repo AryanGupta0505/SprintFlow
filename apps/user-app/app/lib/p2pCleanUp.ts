@@ -31,6 +31,9 @@ export async function cleanupExpiredP2P() {
       event: "TRANSACTION_EXPIRED",
       title: "Transaction Expired",
       message: `Your ₹${tx.amount / 100} transfer expired`,
+      metadata:{
+        amount:tx.amount
+      }
     });
 
     // 🔥 REAL-TIME PUSH
