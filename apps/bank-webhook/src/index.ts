@@ -110,7 +110,7 @@ app.post(
     const txn = req.txn;
 
     try {
-      await db.$transaction(async (tx) => {
+      const result = await db.$transaction(async (tx) => {
 
         await tx.$queryRaw`
           SELECT * FROM "OnRampTransaction"
@@ -123,74 +123,45 @@ app.post(
           include: { user: true }
         });
 
-        if (!freshTxn) throw new Error("Transaction not found");
+        if (!freshTxn) return { type: "ERROR", message: "Transaction not found" };
         if (freshTxn.status !== "Processing")
-          throw new Error("Transaction already processed");
+          return { type: "ERROR", message: "Transaction already processed" };
 
-        // if (freshTxn.pinAttempts +1 >= MAX_PIN_ATTEMPTS) {
-        //   await tx.onRampTransaction.update({
-        //     where: { id: freshTxn.id },
-        //     data: { status: "Failure" }
-        //   });
+        /* ❌ WRONG PIN */
+        if (!freshTxn.user.upiPin || freshTxn.user.upiPin !== upiPin) {
 
-        //   // 🔔 NOTIFY FAILURE
-        //   await notifyUser({
-        //     userId: freshTxn.userId,
-        //     category: "TRANSACTION",
-        //     event: "TRANSACTION_FAILED",
-        //     title: "Withdrawal Failed",
-        //     message: `Your ₹${freshTxn.amount} withdrawal failed`,
-        //     metadata:{
-        //       // token: freshTxn.token,
-        //       amount: freshTxn.amount,
-        //       provider: freshTxn.provider
-        //     }
-        //   });
+          const updatedTxn = await tx.onRampTransaction.update({
+            where: { id: freshTxn.id },
+            data: { pinAttempts: { increment: 1 } }
+          });
 
-        //   throw new Error("Transaction locked (max attempts)");
-        // }
+          if (updatedTxn.pinAttempts >= MAX_PIN_ATTEMPTS) {
 
-        // if (!freshTxn.user.upiPin || freshTxn.user.upiPin !== upiPin) {
-        //   await tx.onRampTransaction.update({
-        //     where: { id: freshTxn.id },
-        //     data: { pinAttempts: { increment: 1 } }
-        //   });
-        //   throw new Error("Incorrect UPI PIN");
-        // }
-        // ❌ WRONG PIN
-if (!freshTxn.user.upiPin || freshTxn.user.upiPin !== upiPin) {
+            await tx.onRampTransaction.update({
+              where: { id: freshTxn.id },
+              data: { status: "Failure" }
+            });
 
-  // 🔥 STEP 1: increment FIRST
-  const updatedTxn = await tx.onRampTransaction.update({
-    where: { id: freshTxn.id },
-    data: { pinAttempts: { increment: 1 } }
-  });
+            await notifyUser({
+              userId: updatedTxn.userId,
+              category: "TRANSACTION",
+              event: "TRANSACTION_FAILED",
+              title: "Withdrawal Failed",
+              message: `Your ₹${updatedTxn.amount} withdrawal failed`,
+              metadata: {
+                amount: updatedTxn.amount,
+                provider: updatedTxn.provider
+              }
+            });
 
-  // 🔥 STEP 2: check AFTER increment
-  if (updatedTxn.pinAttempts >= MAX_PIN_ATTEMPTS) {
+            return { type: "LOCKED" };
+          }
 
-    await tx.onRampTransaction.update({
-      where: { id: freshTxn.id },
-      data: { status: "Failure" }
-    });
+          return { type: "WRONG_PIN" };
+        }
 
-    await notifyUser({
-      userId: updatedTxn.userId,
-      category: "TRANSACTION",
-      event: "TRANSACTION_FAILED",
-      title: "Withdrawal Failed",
-      message: `Your ₹${updatedTxn.amount} withdrawal failed`,
-      metadata: {
-        amount: updatedTxn.amount,
-        provider: updatedTxn.provider
-      }
-    });
+        /* ✅ SUCCESS FLOW */
 
-   throw new Error("Transaction locked (max attempts)");
-  }
-
-  throw new Error("Incorrect UPI PIN");
-}
         await tx.$queryRaw`
           SELECT * FROM "Balance"
           WHERE "userId" = ${freshTxn.userId}
@@ -202,7 +173,7 @@ if (!freshTxn.user.upiPin || freshTxn.user.upiPin !== upiPin) {
         });
 
         if (!balance) {
-          balance = await tx.balance.create({
+          await tx.balance.create({
             data: {
               userId: freshTxn.userId,
               amount: freshTxn.amount,
@@ -223,15 +194,41 @@ if (!freshTxn.user.upiPin || freshTxn.user.upiPin !== upiPin) {
             pinAttempts: 0
           }
         });
+
+        return { type: "SUCCESS" };
       });
-      // 🔔 SUCCESS NOTIFICATION
+
+      /* 🔽 RESPONSE HANDLING OUTSIDE TRANSACTION */
+
+      if (result.type === "LOCKED") {
+        return res.json({
+          success: false,
+          message: "Transaction locked (max attempts)"
+        });
+      }
+
+      if (result.type === "WRONG_PIN") {
+        return res.json({
+          success: false,
+          message: "Incorrect UPI PIN"
+        });
+      }
+
+      if (result.type === "ERROR") {
+        return res.json({
+          success: false,
+          message: result.message
+        });
+      }
+
+      /* 🔔 SUCCESS NOTIFICATION */
       await notifyUser({
         userId: txn.userId,
         category: "TRANSACTION",
         event: "BANK_WITHDRAWAL_SUCCESS",
         title: "Withdrawal Successful",
         message: `₹${txn.amount} added to your balance`,
-        metadata:{
+        metadata: {
           token: txn.token,
           amount: txn.amount,
           provider: txn.provider
@@ -264,7 +261,7 @@ app.post(
     const txn = req.txn;
 
     try {
-      await db.$transaction(async (tx) => {
+      const result = await db.$transaction(async (tx) => {
 
         await tx.$queryRaw`
           SELECT * FROM "OffRampTransaction"
@@ -277,70 +274,45 @@ app.post(
           include: { user: true }
         });
 
-        if (!freshTxn) throw new Error("Transaction not found");
+        if (!freshTxn) return { type: "ERROR", message: "Transaction not found" };
         if (freshTxn.status !== "Processing")
-          throw new Error("Transaction already processed");
+          return { type: "ERROR", message: "Transaction already processed" };
 
-        // if (freshTxn.pinAttempts +1 >= MAX_PIN_ATTEMPTS) {
-        //   await tx.offRampTransaction.update({
-        //     where: { id: freshTxn.id },
-        //     data: { status: "Failure" }
-        //   });
-
-        //   await notifyUser({
-        //     userId: freshTxn.userId,
-        //     category: "TRANSACTION",
-        //     event: "TRANSACTION_FAILED",
-        //     title: "Deposit Failed",
-        //     message: `Your ₹${freshTxn.amount} deposit failed`,
-        //     metadata:{
-        //       // token: freshTxn.token,
-        //       amount: freshTxn.amount,
-        //       provider: freshTxn.provider
-        //     }
-        //   });
-
-        //   throw new Error("Transaction locked (max attempts)");
-        // }
-
-        // if (!freshTxn.user.upiPin || freshTxn.user.upiPin !== upiPin) {
-        //   await tx.offRampTransaction.update({
-        //     where: { id: freshTxn.id },
-        //     data: { pinAttempts: { increment: 1 } }
-        //   });
-        //   throw new Error("Incorrect UPI PIN");
-        // }
+        /* ❌ WRONG PIN */
         if (!freshTxn.user.upiPin || freshTxn.user.upiPin !== upiPin) {
 
-  const updatedTxn = await tx.offRampTransaction.update({
-    where: { id: freshTxn.id },
-    data: { pinAttempts: { increment: 1 } }
-  });
+          const updatedTxn = await tx.offRampTransaction.update({
+            where: { id: freshTxn.id },
+            data: { pinAttempts: { increment: 1 } }
+          });
 
-  if (updatedTxn.pinAttempts >= MAX_PIN_ATTEMPTS) {
+          if (updatedTxn.pinAttempts >= MAX_PIN_ATTEMPTS) {
 
-    await tx.offRampTransaction.update({
-      where: { id: freshTxn.id },
-      data: { status: "Failure" }
-    });
+            await tx.offRampTransaction.update({
+              where: { id: freshTxn.id },
+              data: { status: "Failure" }
+            });
 
-    await notifyUser({
-      userId: updatedTxn.userId,
-      category: "TRANSACTION",
-      event: "TRANSACTION_FAILED",
-      title: "Deposit Failed",
-      message: `Your ₹${updatedTxn.amount} deposit failed`,
-      metadata: {
-        amount: updatedTxn.amount,
-        provider: updatedTxn.provider
-      }
-    });
+            await notifyUser({
+              userId: updatedTxn.userId,
+              category: "TRANSACTION",
+              event: "TRANSACTION_FAILED",
+              title: "Deposit Failed",
+              message: `Your ₹${updatedTxn.amount} deposit failed`,
+              metadata: {
+                amount: updatedTxn.amount,
+                provider: updatedTxn.provider
+              }
+            });
 
-    throw new Error("Transaction locked (max attempts)");
-  }
+            return { type: "LOCKED" };
+          }
 
-  throw new Error("Incorrect UPI PIN");
-}
+          return { type: "WRONG_PIN" };
+        }
+
+        /* ✅ BALANCE CHECK */
+
         await tx.$queryRaw`
           SELECT * FROM "Balance"
           WHERE "userId" = ${freshTxn.userId}
@@ -352,6 +324,7 @@ app.post(
         });
 
         if (!balance || balance.amount < freshTxn.amount) {
+
           await tx.offRampTransaction.update({
             where: { id: freshTxn.id },
             data: { status: "Failure" }
@@ -363,15 +336,16 @@ app.post(
             event: "TRANSACTION_FAILED",
             title: "Deposit Failed",
             message: `Your ₹${freshTxn.amount} deposit failed`,
-            metadata:{
-              // token: freshTxn.token,
+            metadata: {
               amount: freshTxn.amount,
               provider: freshTxn.provider
             }
           });
 
-          throw new Error("Insufficient balance");
+          return { type: "ERROR", message: "Insufficient balance" };
         }
+
+        /* ✅ SUCCESS */
 
         await tx.balance.update({
           where: { userId: freshTxn.userId },
@@ -385,14 +359,40 @@ app.post(
             pinAttempts: 0
           }
         });
+
+        return { type: "SUCCESS" };
       });
+
+      /* 🔽 RESPONSE HANDLING */
+
+      if (result.type === "LOCKED") {
+        return res.json({
+          success: false,
+          message: "Transaction locked (max attempts)"
+        });
+      }
+
+      if (result.type === "WRONG_PIN") {
+        return res.json({
+          success: false,
+          message: "Incorrect UPI PIN"
+        });
+      }
+
+      if (result.type === "ERROR") {
+        return res.json({
+          success: false,
+          message: result.message
+        });
+      }
+
       await notifyUser({
         userId: txn.userId,
         category: "TRANSACTION",
         event: "BANK_DEPOSIT_SUCCESS",
         title: "Deposit Successful",
         message: `₹${txn.amount} withdrawn from your balance`,
-        metadata:{
+        metadata: {
           token: txn.token,
           amount: txn.amount,
           provider: txn.provider
