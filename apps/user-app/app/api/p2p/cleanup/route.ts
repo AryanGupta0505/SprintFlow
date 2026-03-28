@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cleanupExpiredP2P } from "../../../lib/p2pCleanUp";
-
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     await cleanupExpiredP2P();
