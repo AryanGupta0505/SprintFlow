@@ -5,13 +5,15 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth";
 import prisma from "@repo/db/client";
 import { randomUUID } from "crypto";
-
+import { cleanupExpiredP2P } from "../p2pCleanUp";
 export async function p2pTransfer(to: string, amount: number, requestId?: number) {
   const session = await getServerSession(authOptions);
   const from = Number(session?.user?.id);
 
   if (!from) return { error: "Unauthorized" };
 
+// ✅ ADD THIS LINE HERE
+await cleanupExpiredP2P();
   if (!amount || amount <= 0) {
     return { error: "Invalid amount" };
   }
