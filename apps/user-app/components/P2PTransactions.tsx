@@ -78,7 +78,17 @@ useEffect(() => {
       router.refresh();
     }
   }, [now, transactions, router]);
+useEffect(() => {
+  const interval = setInterval(async () => {
+    try {
+      await fetch("/api/p2p/cleanup"); // 👈 force backend call
+    } catch (e) {
+      console.error("cleanup call failed");
+    }
+  }, 5000); // every 5 sec
 
+  return () => clearInterval(interval);
+}, []);
   /* =========================
      FILTERING
   ========================= */

@@ -5,6 +5,7 @@ import { sendToUser } from "./ws";
 const ONE_MINUTE = 60 * 1000;
 
 export async function cleanupExpiredP2P() {
+    console.log("🔥 P2P CLEANUP CALLED");
   const expiryTime = new Date(Date.now() - ONE_MINUTE);
 
   const expired = await prisma.p2pTransfer.findMany({
@@ -23,6 +24,7 @@ export async function cleanupExpiredP2P() {
   });
 
   for (const tx of expired) {
+    console.log("❌ Expiring TX:", tx.id);
     await createNotification({
       userId: tx.fromUserId,
       category: "TRANSACTION",
